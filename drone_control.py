@@ -1,5 +1,6 @@
 # -*- coding: cp1255 -*-
 import threading
+import Queue
 import dronekit_sitl
 import serial
 import time
@@ -45,7 +46,22 @@ while True:
     data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
     print ("received message:", data)
 """
+def mavProxy():
+    
+    mavProxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+    proc = subprocess.Popen(mavProxy,shell=True,stdin=subprocess.PIPE,stdout=subprocess.PIPE)
+    print("is in mavproxy")
+    while True:
+        connect = proc.stdout.readline().split(" ")[0] #if the line = Saved 773 parmeters to mav.prm the mavProxy connect to 3DR.
+        print(connect) 
+        if(str(connect) == "Saved"):
+            print("issssss"+connect) 
+            queue.put(connect)
+            break
 
+    
+
+    
 def connecting_drone():
     # Connect to the Vehicle.
     print("Connecting to vehicle on: udp:127.0.0.1:14551")
@@ -118,13 +134,20 @@ vehicle.mode = VehicleMode("AUTO")
 """
 if __name__ == "__main__":
     
+    queue = Queue.Queue()
+    mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
+    mavThread.start()
+    while True:
+        if(queue.get() == "Saved"):
+            print(queue.get())
+    
     person_detection_thread = threading.Thread(name='inint_person_detection', target=inint_person_detection)
     #mavProxy_thread = threading.Thread(name='init_mavProxy', target=init_mavProxy)
     #mavProxy_thread.start()
     #time.sleep(5)
     person_detection_thread.start()
     
-    print("t is working")
+    print("t is working\n")
     #init_mavProxy()
     connecting_drone()
 #time.sleep(10)
