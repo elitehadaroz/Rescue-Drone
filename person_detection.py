@@ -14,6 +14,15 @@ from PIL import Image
 import cv2
 from utils import label_map_util
 from utils import visualization_utils as vis_util
+import tkinter as tk
+from PIL import Image, ImageTk
+import threading
+from multiprocessing import Process, Queue
+import queue
+import pickle
+import struct
+
+
 
 
 cap=cv2.VideoCapture(0)
@@ -82,27 +91,27 @@ def load_image_into_numpy_array(image):
 
 # Size, in inches, of the output images.
 #IMAGE_SIZE = (12, 8)
-
-
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
-
-sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM) # UDP
+clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+clientsocket.connect(('localhost',8080))
+#pickle.dump(protocol=2)
 def main():
   with detection_graph.as_default():
     with tf.Session(graph=detection_graph) as sess:
+      # Definite input and output Tensors for detection_graph
+      image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
+      # Each box represents a part of the image where a particular object was detected.
+      detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
+      # Each score represent how level of confidence for each of the objects.
+      # Score is shown on the result image, together with the class label.
+      detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
+      detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
+      num_detections = detection_graph.get_tensor_by_name('num_detections:0')
+      # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
       while True:
         ret,image_np=cap.read()
-        # Definite input and output Tensors for detection_graph
-        image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
-        # Each box represents a part of the image where a particular object was detected.
-        detection_boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
-        # Each score represent how level of confidence for each of the objects.
-        # Score is shown on the result image, together with the class label.
-        detection_scores = detection_graph.get_tensor_by_name('detection_scores:0')
-        detection_classes = detection_graph.get_tensor_by_name('detection_classes:0')
-        num_detections = detection_graph.get_tensor_by_name('num_detections:0')
-        # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
+        #image_np = cv2.flip(image_np, 1)
+        #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        
         image_np_expanded = np.expand_dims(image_np, axis=0)
         # Actual detection.
         (boxes, scores, classes, num) = sess.run(
@@ -128,12 +137,32 @@ def main():
             use_normalized_coordinates=True,
             line_thickness=8)
         #if(category_index.get(value) for index in enumerate(classes[0]) == "person"):
-        cv2.imshow('object detection', cv2.resize(image_np, (600,600)))
-        end=time.time()
-       
-        if cv2.waitKey(25) & 0xFF == ord('q'):
+        #cv2.imshow('object detection', cv2.resize(image_np, (480,640)))
+        data = pickle.dumps(image_np,protocol=1) ### new code
+        clientsocket.sendall(struct.pack("L", len(data))+data) ### new code
+        #img = Image.fromarray(image_np)
+        #imgtk = ImageTk.PhotoImage(image=img)
+        #lmain.imgtk = imgtk
+        #lmain.configure(image=imgtk)
+        #queue.put(image_np) 
+        if cv2.waitKey(50) & 0xFF == ord('q'):
           cv2.destroyAllWindows()
           break
     
 if __name__ == "__main__":
-     main()
+  #Set up GUI
+  #queue = queue.Queue()
+  #window = tk.Tk()  #Makes main window
+  #window.wm_title("Digital Microscope")
+  #window.config(background="#FFFFFF")
+  main()
+  #lmain = tk.Label(window)
+  #lmain.grid(row=1, column=1)
+  #vid =threading.Thread(name='vid',target=main)
+  #vid.start()
+  #drone =  "cd C:\Python27 python drone_control.py"  # launch the person_detection script using bash
+  #droneProcess = subprocess.Popen(drone,shell=False, stdout=subprocess.PIPE)
+  print("after 10")
+  #s =threading.Thread(name='vid',target=read)
+  #s.start()
+  #window.mainloop()
