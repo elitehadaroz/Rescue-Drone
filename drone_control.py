@@ -230,64 +230,66 @@ class DroneControl:
 class Gui:
     def __init__(self,master):      
         master.geometry("600x600")
-        frame = Frame(master,width=600,height=600)
+        frame = Frame(master,width=1200,height=800)
         master.title("Rescue Drune")
         master.grid_columnconfigure(1, weight=1)
         master.grid_rowconfigure(1, weight=1)
         print("hhhh")
         #frames
         drone_control = Frame(master,width=200,height=600, bg='yellow')
-        self.video_window = Label(master,width=400,height=400)
+        self.video_window = Label(master,width=640,height=480)
         msg_drone = Frame(master,width=400,height=200, bg='red')
     
         #frames zone
         drone_control.grid(row=1 ,column=2, rowspan=2,sticky="nsew")
-        self.video_window.grid(row=1,column=1,sticky="nsew",padx=5, pady=5)
+        self.video_window.grid(row=1,column=1,sticky="e",padx=5, pady=5)
         msg_drone.grid(row=2,column=1,sticky="nsew")
-        self.last_frame = np.zeros((400, 400, 3), dtype=np.uint8)
-        self.ff()
-        
-    def ff(self):
-        
-        self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        #self.last_frame = np.zeros((400, 400, 3), dtype=np.uint8)
+        self.boole=True
+        self.person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
+        self.person_detection_video.start()
+        print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+        master.protocol("WM_DELETE_WINDOW", self.on_closing)
+    def on_closing(self):
+        self.boole=False
+        root.destroy()
+    def CamDrone(self):
+        socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         HOST=''
         PORT=8089
         print("conecting to person detection")
-        self.socket_video.bind((HOST,PORT))
+        socket_video.bind((HOST,PORT))
         print 'Socket bind complete'
-        self.socket_video.listen(10)
+        socket_video.listen(10)
         print 'Socket now listening'
-        self.conn,self.addr=self.socket_video.accept()
-        self.data = ""
-        self.payload_size = struct.calcsize("L")
-        time.sleep(1)
-        person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
-        person_detection_video.start()
-        print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
-        
-    def CamDrone(self):
-        while True:
-            while len(self.data) < self.payload_size:
-                self.data += self.conn.recv(4096)
-            packed_msg_size = self.data[:self.payload_size]
-            self.data = self.data[self.payload_size:]
+        conn,addr=socket_video.accept()
+        data = ""
+        payload_size = struct.calcsize("L")
+        while self.boole:
+            while len(data) < payload_size:
+                data += conn.recv(4096)
+            packed_msg_size = data[:payload_size]
+            data = data[payload_size:]
             msg_size = struct.unpack("L", packed_msg_size)[0]
-            while len(self.data) < msg_size:
-                self.data += self.conn.recv(4096)
-            frame_data = self.data[:msg_size]
-            self.data = self.data[msg_size:]
+            while len(data) < msg_size:
+                data += conn.recv(4096)
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
             
-
-            self.last_frame=pickle.loads(frame_data)
-            #cv2.imshow('frame',frame)
-            img = Image.fromarray(self.last_frame)
+            
+            last_frame=pickle.loads(frame_data)
+            last_frame = cv2.cvtColor(last_frame, cv2.COLOR_BGR2RGB)
+            #cv2.resize(last_frame, (400,400))
+            #cv2.imshow('frame',last_frame)
+            img = Image.fromarray(last_frame)
             imgtk = ImageTk.PhotoImage(image=img)
             self.video_window.imgtk = imgtk
             self.video_window.configure(image=imgtk)
-            self.video_window.after(10, self.CamDrone)
-            if cv2.waitKey(50) & 0xFF == ord('q'):
+            #self.video_window.after(10, self.CamDrone)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
+
     
     #def camera(self):
         
@@ -295,13 +297,14 @@ class Gui:
 ##################################################### main ####################################################################
 if __name__ == "__main__":
     root =Tk()
-    
-    Person_Detection_Tread = threading.Thread(name='PersonDetection', target=PersonDetection)
-    Person_Detection_Tread.start()
+    PersonDetection()
+    #Person_Detection_Tread = threading.Thread(name='PersonDetection', target=PersonDetection)
+    #Person_Detection_Tread.start()
     gui = Gui(root)
-    print("after person detection")
+    
     
     root.mainloop()
+    print("after person detection")
     #queue = Queue.Queue()
     #mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
     #mavThread.start()

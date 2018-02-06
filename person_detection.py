@@ -109,45 +109,46 @@ def main():
       # Expand dimensions since the model expects images to have shape: [1, None, None, 3]
       while True:
         ret,image_np=cap.read()
-        #image_np = cv2.flip(image_np, 1)
-        #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
+        if ret:
+          #image_np = cv2.flip(image_np, 1)
+          #image_np = cv2.cvtColor(image_np, cv2.COLOR_BGR2RGB)
         
-        image_np_expanded = np.expand_dims(image_np, axis=0)
-        # Actual detection.
-        (boxes, scores, classes, num) = sess.run(
+          image_np_expanded = np.expand_dims(image_np, axis=0)
+          # Actual detection.
+          (boxes, scores, classes, num) = sess.run(
             [detection_boxes, detection_scores, detection_classes, num_detections],
             feed_dict={image_tensor: image_np_expanded})
         
-        # Visualization of the results of a detection.
-        name_type =[category_index.get(value) for index,value in enumerate(classes[0]) if scores[0,index] > 0.5]
-        if (len(name_type) !=0 ):
-          if name_type[0] is not None :
-            MESSAGE=(name_type[0]['name']) #name of type detection
-            sys.stdout.write(MESSAGE+ "\n")
-            #print(MESSAGE)
-            sys.stdout.flush()
-            #sock.sendto(MESSAGE.encode('utf-8'), (UDP_IP, UDP_PORT))   
-            if name_type[0]['name'] == "person":
-              vis_util.visualize_boxes_and_labels_on_image_array(
-            image_np,
-            np.squeeze(boxes),
-            np.squeeze(classes).astype(np.int32),
-            np.squeeze(scores),
-            category_index,
-            use_normalized_coordinates=True,
-            line_thickness=8)
-        #if(category_index.get(value) for index in enumerate(classes[0]) == "person"):
-        #cv2.imshow('object detection', cv2.resize(image_np, (480,640)))
-        data = pickle.dumps(image_np,protocol=1) ### new code
-        clientsocket.sendall(struct.pack("L", len(data))+data) ### new code
-        #img = Image.fromarray(image_np)
-        #imgtk = ImageTk.PhotoImage(image=img)
-        #lmain.imgtk = imgtk
-        #lmain.configure(image=imgtk)
-        #queue.put(image_np) 
-        if cv2.waitKey(50) & 0xFF == ord('q'):
-          cv2.destroyAllWindows()
-          break
+          #Visualization of the results of a detection.
+          name_type =[category_index.get(value) for index,value in enumerate(classes[0]) if scores[0,index] > 0.5]
+          if(len(name_type) !=0 ):
+            if name_type[0] is not None :
+              MESSAGE=(name_type[0]['name']) #name of type detection
+              sys.stdout.write(MESSAGE+ "\n")
+              #print(MESSAGE)
+              sys.stdout.flush()
+              #sock.sendto(MESSAGE.encode('utf-8'), (UDP_IP, UDP_PORT))   
+              if name_type[0]['name'] == "person":
+                vis_util.visualize_boxes_and_labels_on_image_array(
+              image_np,
+              np.squeeze(boxes),
+              np.squeeze(classes).astype(np.int32),
+              np.squeeze(scores),
+              category_index,
+              use_normalized_coordinates=True,
+              line_thickness=8)
+          #if(category_index.get(value) for index in enumerate(classes[0]) == "person"):
+          #cv2.imshow('object detection', cv2.resize(image_np, (480,640)))
+          data = pickle.dumps(image_np,protocol=1) ### new code
+          clientsocket.sendall(struct.pack("L", len(data))+data) ### new code
+          #img = Image.fromarray(image_np)
+          #imgtk = ImageTk.PhotoImage(image=img)
+          #lmain.imgtk = imgtk
+          #lmain.configure(image=imgtk)
+          #queue.put(image_np) 
+          if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            break
     
 if __name__ == "__main__":
   #Set up GUI
