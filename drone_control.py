@@ -16,6 +16,10 @@ import cv2
 import numpy
 import struct
 import pickle
+from Tkinter import *
+from PIL import Image, ImageTk
+import numpy as np
+
 vehicle =None
 #this for use simulation in drone 
 
@@ -141,28 +145,182 @@ arm_and_takeoff(10)
 
 vehicle.mode = VehicleMode("AUTO")
 """
+############################################# person detection ################################################################
+class PersonDetection:
+    def __init__(self):
+        #self.videoframe = videoframe
+        
+        print ('Socket created')
+        print ('detection process')
+        person_detection = "py person_detection.py"  # launch the person_detection script using bash
+        self.person_detectionProcess = subprocess.Popen(person_detection,shell=True, stdout=subprocess.PIPE)
+        """
+        print("now video")
+        #video thread
+        self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.HOST=''
+        self.PORT=8089
+        print("conecting to person detection")
+        self.socket_video.bind((self.HOST,self.PORT))
+        print 'Socket bind complete'
+        self.socket_video.listen(10)
+        print 'Socket now listening'
+        self.conn,self.addr=self.socket_video.accept()
+        self.data = ""
+        self.payload_size = struct.calcsize("L")
+        person_detection_video = threading.Thread(name='person_detection_video',target=self.DetectionVideo(yt))
+        person_detection_video.start()
+        """
+        #msg thread
+        #self.DetectionMsg(self.person_detectionProcess)
+        person_detection_msg = threading.Thread(name='person_detection_msg',target=self.DetectionMsg)
+        person_detection_msg.start()
+        
+        print("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    def DetectionMsg(self):
+        #time.sleep(20)
+        print("ok")
+        while True:
+            line = self.person_detectionProcess.stdout.readline().rstrip('\n')
+            if not line:
+                break
+            print(line)
 
+    def DetectionVideo(self,yt):
+        #print("conecting to person detection")
+        #self.socket_video.bind((self.HOST,self.PORT))
+        #print 'Socket bind complete'
+        #self.socket_video.listen(10)
+        #print 'Socket now listening'
+        #conn,addr=self.socket_video.accept()
+        #data = ""
+        #payload_size = struct.calcsize("L")
+        """
+        while True:
+            while len(self.data) < self.payload_size:
+                self.data += self.conn.recv(4096)
+            packed_msg_size = self.data[:self.payload_size]
+            self.data = self.data[self.payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(self.data) < msg_size:
+                self.data += self.conn.recv(4096)
+            frame_data = self.data[:msg_size]
+            self.data = self.data[msg_size:]
+            
 
-if __name__ == "__main__":
+            frame=pickle.loads(frame_data)
+            #cv2.imshow('frame',frame)
+            img = Image.fromarray(frame)
+            imgtk = ImageTk.PhotoImage(image=img)
+            yt.imgtk = imgtk
+            yt.configure(image=imgtk)
+            yt.after(10, DetectionVideo)
+            if cv2.waitKey(50) & 0xFF == ord('q'):
+                cv2.destroyAllWindows()
+                break
+"""
+###############################################################################################################################
+################################################ Drone Control ################################################################
+"""
+class DroneControl:
+    def __init(self):
+"""
+###############################################################################################################################
+##################################################### Gui #####################################################################
+class Gui:
+    def __init__(self,master):      
+        master.geometry("600x600")
+        frame = Frame(master,width=600,height=600)
+        master.title("Rescue Drune")
+        master.grid_columnconfigure(1, weight=1)
+        master.grid_rowconfigure(1, weight=1)
+        print("hhhh")
+        #frames
+        drone_control = Frame(master,width=200,height=600, bg='yellow')
+        self.video_window = Label(master,width=400,height=400)
+        msg_drone = Frame(master,width=400,height=200, bg='red')
     
+        #frames zone
+        drone_control.grid(row=1 ,column=2, rowspan=2,sticky="nsew")
+        self.video_window.grid(row=1,column=1,sticky="nsew",padx=5, pady=5)
+        msg_drone.grid(row=2,column=1,sticky="nsew")
+        self.last_frame = np.zeros((400, 400, 3), dtype=np.uint8)
+        self.ff()
+        
+    def ff(self):
+        
+        self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        HOST=''
+        PORT=8089
+        print("conecting to person detection")
+        self.socket_video.bind((HOST,PORT))
+        print 'Socket bind complete'
+        self.socket_video.listen(10)
+        print 'Socket now listening'
+        self.conn,self.addr=self.socket_video.accept()
+        self.data = ""
+        self.payload_size = struct.calcsize("L")
+        time.sleep(1)
+        person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
+        person_detection_video.start()
+        print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+        
+    def CamDrone(self):
+        while True:
+            while len(self.data) < self.payload_size:
+                self.data += self.conn.recv(4096)
+            packed_msg_size = self.data[:self.payload_size]
+            self.data = self.data[self.payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(self.data) < msg_size:
+                self.data += self.conn.recv(4096)
+            frame_data = self.data[:msg_size]
+            self.data = self.data[msg_size:]
+            
+
+            self.last_frame=pickle.loads(frame_data)
+            #cv2.imshow('frame',frame)
+            img = Image.fromarray(self.last_frame)
+            imgtk = ImageTk.PhotoImage(image=img)
+            self.video_window.imgtk = imgtk
+            self.video_window.configure(image=imgtk)
+            self.video_window.after(10, self.CamDrone)
+            if cv2.waitKey(50) & 0xFF == ord('q'):
+                cv2.destroyAllWindows()
+                break
+    
+    #def camera(self):
+        
+###############################################################################################################################
+##################################################### main ####################################################################
+if __name__ == "__main__":
+    root =Tk()
+    
+    Person_Detection_Tread = threading.Thread(name='PersonDetection', target=PersonDetection)
+    Person_Detection_Tread.start()
+    gui = Gui(root)
+    print("after person detection")
+    
+    root.mainloop()
     #queue = Queue.Queue()
     #mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
     #mavThread.start()
     #while True:
     #    if(queue.get() == "Saved"):
     #        print(queue.get())
-    HOST=''
-    PORT=8080
-    s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-    print 'Socket created'
+    #HOST=''
+    #PORT=8089
+    #s=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+    #print 'Socket created'
     
-    print("connect to person")
-    person_detection_thread = threading.Thread(name='inint_person_detection', target=inint_person_detection)
+    #print("connect to person")
+    #person_detection_thread = threading.Thread(name='inint_person_detection', target=inint_person_detection)
     #mavProxy_thread = threading.Thread(name='init_mavProxy', target=init_mavProxy)
     #mavProxy_thread.start()
     #time.sleep(5)
-    person_detection_thread.start()
+    #person_detection_thread.start()
     #time.sleep(20)
+    """
     s.bind((HOST,PORT))
     print 'Socket bind complete'
     s.listen(10)
@@ -191,8 +349,9 @@ if __name__ == "__main__":
           cv2.destroyAllWindows()
           break
     print("t is working\n")
+    """
     #init_mavProxy()
-    connecting_drone()
+    #connecting_drone()
     #time.sleep(10)
     # Shut down simulator
     #sitl.stop()
