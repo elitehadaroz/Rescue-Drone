@@ -173,10 +173,14 @@ class PersonDetection:
         """
         #msg thread
         #self.DetectionMsg(self.person_detectionProcess)
-        person_detection_msg = threading.Thread(name='person_detection_msg',target=self.DetectionMsg)
-        person_detection_msg.start()
+        self.person_detection_msg = threading.Thread(name='person_detection_msg',target=self.DetectionMsg)
+        self.person_detection_msg.start()
         
         print("hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
+    def Close_detection(self):
+        self.person_detection_msg.join()
+        self.person_detectionProcess.kill()
+        
     def DetectionMsg(self):
         #time.sleep(20)
         print("ok")
@@ -250,9 +254,13 @@ class Gui:
         self.person_detection_video.start()
         print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
+        
     def on_closing(self):
         self.boole=False
+        time.sleep(1)
+        self.person_detection_video.join()
         root.destroy()
+        
     def CamDrone(self):
         socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         HOST=''
@@ -297,13 +305,14 @@ class Gui:
 ##################################################### main ####################################################################
 if __name__ == "__main__":
     root =Tk()
-    PersonDetection()
+    p=PersonDetection()
     #Person_Detection_Tread = threading.Thread(name='PersonDetection', target=PersonDetection)
     #Person_Detection_Tread.start()
     gui = Gui(root)
     
     
     root.mainloop()
+    p.Close_detection()
     print("after person detection")
     #queue = Queue.Queue()
     #mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
