@@ -239,41 +239,73 @@ class Gui:
         master.grid_columnconfigure(1, weight=1)
         master.grid_rowconfigure(1, weight=1)
         print("hhhh")
-        #frames
+        #drone_control frames
         drone_control = Frame(master,width=200,height=600, bg='yellow')
-        self.video_window = Label(master,width=640,height=480)
-        msg_drone = Frame(master,width=400,height=200, bg='red')
-    
-        #frames zone
         drone_control.grid(row=1 ,column=2, rowspan=2,sticky="nsew")
-        self.video_window.grid(row=1,column=1,sticky="e",padx=5, pady=5)
+        
+        #video_window frames
+        self.video_window = Label(master,width=640,height=480)
+        self.video_window.grid(row=1,column=1,sticky=W+N,padx=5, pady=5)
+        
+        #msg_drone frames
+        msg_drone = Frame(master,width=400,height=200, bg='red')
         msg_drone.grid(row=2,column=1,sticky="nsew")
-        #self.last_frame = np.zeros((400, 400, 3), dtype=np.uint8)
-        self.boole=True
-        self.person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
-        self.person_detection_video.start()
+        
+        #frames zone
+        
+       
+       
+        
+        self.isConnect=False
+        self.button_connect=Button(drone_control,text="Connect",width=10, height=3, command=lambda:self.Switch_OnOff())
+        self.button_connect.grid(row=0,column=1)
+       
         print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
         
-    def on_closing(self):
-        self.boole=False
+    def Switch_OnOff(self):
+        print("in switcher")
+        if self.isConnect is False:
+            print("is here")
+            self.button_connect.config(text="Disconnect")
+            self.isConnect=True
+            self.Connect()
+        else:
+            self.button_connect.config(text="Connect")
+            self.isConnect=False
+            self.Disconnect()
+
+    def Connect(self):  #connect to the system
+        self.p=PersonDetection()
+        self.person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
+        self.person_detection_video.start()
+        
+    def Disconnect(self):    #disconnect from button
+        self.p.Close_detection()
+        self.isConnect=False
+        time.sleep(1)
+        self.person_detection_video.join()
+        self.socket_video.close()
+        
+    def on_closing(self):   #when the user close the window on X
+        self.isConnect=False
         time.sleep(1)
         self.person_detection_video.join()
         root.destroy()
         
     def CamDrone(self):
-        socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         HOST=''
         PORT=8089
         print("conecting to person detection")
-        socket_video.bind((HOST,PORT))
+        self.socket_video.bind((HOST,PORT))
         print 'Socket bind complete'
-        socket_video.listen(10)
+        self.socket_video.listen(10)
         print 'Socket now listening'
-        conn,addr=socket_video.accept()
+        conn,addr=self.socket_video.accept()
         data = ""
         payload_size = struct.calcsize("L")
-        while self.boole:
+        while self.isConnect:
             while len(data) < payload_size:
                 data += conn.recv(4096)
             packed_msg_size = data[:payload_size]
@@ -305,14 +337,12 @@ class Gui:
 ##################################################### main ####################################################################
 if __name__ == "__main__":
     root =Tk()
-    p=PersonDetection()
     #Person_Detection_Tread = threading.Thread(name='PersonDetection', target=PersonDetection)
     #Person_Detection_Tread.start()
     gui = Gui(root)
     
     
     root.mainloop()
-    p.Close_detection()
     print("after person detection")
     #queue = Queue.Queue()
     #mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
