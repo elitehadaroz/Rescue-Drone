@@ -233,51 +233,61 @@ class DroneControl:
 ##################################################### Gui #####################################################################
 class Gui:
     def __init__(self,master):      
-        master.geometry("600x600")
-        frame = Frame(master,width=1200,height=800)
+        master.geometry("900x700")
+        #frame = Frame(master,width=1200,height=800)
         master.title("Rescue Drune")
-        master.grid_columnconfigure(1, weight=1)
-        master.grid_rowconfigure(1, weight=1)
+        
+        for x in xrange(5):
+            master.grid_columnconfigure(x, weight=1)
+        for y in xrange(5):    
+            master.grid_rowconfigure(y, weight=1)
+            
         print("hhhh")
         #drone_control frames
-        drone_control = Frame(master,width=200,height=600, bg='yellow')
-        drone_control.grid(row=1 ,column=2, rowspan=2,sticky="nsew")
+        drone_control = Frame(master, bg='yellow')
+        for x in xrange(2):
+            drone_control.grid_columnconfigure(x, weight=1)
+        for y in xrange(5):    
+            drone_control.grid_rowconfigure(y, weight=1)
+        drone_control.grid(row=0 ,column=1, rowspan=4,columnspan=5,sticky=W+N+E+S)
         
         #video_window frames
-        self.video_window = Label(master,width=640,height=480)
-        self.video_window.grid(row=1,column=1,sticky=W+N,padx=5, pady=5)
+        self.video_window = Label(master,width=80,height=31,bg='black')
+        self.video_window.grid(row=0,column=0,sticky=W+N+E+S,padx=5, pady=5)
         
         #msg_drone frames
-        msg_drone = Frame(master,width=400,height=200, bg='red')
-        msg_drone.grid(row=2,column=1,sticky="nsew")
+        msg_drone = Frame(master,height=200, bg='red')
+        msg_drone.grid(row=1,column=0,columnspan=5,rowspan=5,sticky=W+N+E+S)
         
         #frames zone
+        #self.video_window.grid_columnconfigure(1, weight=1)
+        #self.video_window.grid_rowconfigure(1, weight=1)
         
-       
+
        
         
         self.isConnect=False
-        self.button_connect=Button(drone_control,text="Connect",width=10, height=3, command=lambda:self.Switch_OnOff())
-        self.button_connect.grid(row=0,column=1)
+        self.button_connect=Button(drone_control,text="Connect",width=10, height=3, command=lambda:self.Switch_OnOff(master))
+        self.button_connect.grid(row=0,column=0)
        
         print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
         
-    def Switch_OnOff(self):
+    def Switch_OnOff(self,master):
         print("in switcher")
         if self.isConnect is False:
             print("is here")
             self.button_connect.config(text="Disconnect")
             self.isConnect=True
-            self.Connect()
+            self.Connect(master)
         else:
             self.button_connect.config(text="Connect")
             self.isConnect=False
             self.Disconnect()
 
-    def Connect(self):  #connect to the system
+    def Connect(self,master):  #connect to the system
         self.p=PersonDetection()
-        self.person_detection_video = threading.Thread(name='person_detection_video',target=self.CamDrone)
+        self.person_detection_video = threading.Thread(name='person_detection_video',target=lambda:self.CamDrone(master))
         self.person_detection_video.start()
         
     def Disconnect(self):    #disconnect from button
@@ -288,12 +298,15 @@ class Gui:
         self.socket_video.close()
         
     def on_closing(self):   #when the user close the window on X
-        self.isConnect=False
-        time.sleep(1)
-        self.person_detection_video.join()
-        root.destroy()
-        
-    def CamDrone(self):
+        if self.isConnect is True:
+            self.isConnect=False
+            time.sleep(1)
+            self.person_detection_video.join()
+            root.destroy()
+        else:
+            root.destroy()
+            
+    def CamDrone(self,master):
         self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         HOST=''
         PORT=8089
@@ -305,6 +318,8 @@ class Gui:
         conn,addr=self.socket_video.accept()
         data = ""
         payload_size = struct.calcsize("L")
+        self.vedeo=Label(master)
+        self.vedeo.grid(row=0,column=0,sticky=W+N)
         while self.isConnect:
             while len(data) < payload_size:
                 data += conn.recv(4096)
@@ -316,15 +331,14 @@ class Gui:
             frame_data = data[:msg_size]
             data = data[msg_size:]
             
-            
             last_frame=pickle.loads(frame_data)
             last_frame = cv2.cvtColor(last_frame, cv2.COLOR_BGR2RGB)
             #cv2.resize(last_frame, (400,400))
             #cv2.imshow('frame',last_frame)
             img = Image.fromarray(last_frame)
             imgtk = ImageTk.PhotoImage(image=img)
-            self.video_window.imgtk = imgtk
-            self.video_window.configure(image=imgtk)
+            self.vedeo.imgtk = imgtk
+            self.vedeo.configure(image=imgtk)
             #self.video_window.after(10, self.CamDrone)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
