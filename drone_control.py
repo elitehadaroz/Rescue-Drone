@@ -260,7 +260,26 @@ class Gui:
         
         #msg_drone frames
         msg_drone = Frame(master,height=200, bg='red')
+        for x in xrange(5):
+            msg_drone.grid_columnconfigure(x, weight=1)
+        for y in xrange(2):    
+            msg_drone.grid_rowconfigure(y, weight=1)
         msg_drone.grid(row=1,column=0,columnspan=5,rowspan=5,sticky=W+N+E+S)
+        """
+        monitor_msgFrame=Frame(msg_drone,width=25)
+        monitor_msgFrame.grid_columnconfigure(0, weight=1)
+        monitor_msgFrame.grid_rowconfigure(0, weight=1)
+        monitor_msgFrame.grid_columnconfigure(1, weight=1)
+        monitor_msgFrame.grid(row=0,column=0,columnspan=2,rowspan=3,sticky=W+N+S+E)
+        """
+        monitor_msg=Text(msg_drone,width=30)
+        monitor_msg.grid(row=0,column=0,sticky=W+N+S+E)
+        
+        scrollbar = Scrollbar(msg_drone)
+        scrollbar.grid(row=0,column=1,sticky=W+N+S)
+        
+        monitor_msg.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=monitor_msg.yview)
         
         #frames zone
         #self.video_window.grid_columnconfigure(1, weight=1)
