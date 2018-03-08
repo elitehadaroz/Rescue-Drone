@@ -10,7 +10,8 @@ import sys
 import os
 import signal
 import socket
-from dronekit import connect, VehicleMode # Import DroneKit-Python5
+from dronekit import connect, VehicleMode ,APIException# Import DroneKit-Python
+import exceptions
 import tkinter
 import cv2
 import numpy
@@ -225,10 +226,69 @@ class PersonDetection:
 """
 ###############################################################################################################################
 ################################################ Drone Control ################################################################
-"""
+
 class DroneControl:
-    def __init(self):
-"""
+    def __init__(self):
+        
+        mavProxy ='mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+        self.mavProxyProcess = subprocess.Popen(mavProxy,shell=True, stdout=subprocess.PIPE)
+        print("in drone control")
+
+        self.msg_from_mavlink = threading.Thread(name='mavlinkMsg',target=self.mavlinkMsg)
+        self.msg_from_mavlink.start()
+        connecting_drone()
+        
+    def connecting_drone():
+        # Connect to the Vehicle.
+        print "Connecting to vehicle on: udp:127.0.0.1:14551"
+        try:
+            #connecting to the vehicle by udp- this we can also open the massion planner with the python
+            vehicle = dronekit.connect("127.0.0.1:14551",wait_ready=False,baud=57600)
+            #wait_ready is for that all info from drune upload 100%
+            vehicle.wait_ready(True, timeout=50)
+            print("the vehicle is ready")
+        # Bad TCP connection
+        except socket.error:
+            print 'No server exists!'
+
+        # Bad TTY connection
+        except exceptions.OSError as e:
+            print 'No serial exists!'
+
+        # API Error
+        except dronekit.APIException:
+            print 'Timeout!'
+
+        # Other error
+        except:
+            print 'Some other error!'
+        
+        #vehicle attributes (state)
+        print("Get some vehicle attribute values:")
+        print(" GPS: %s" % vehicle.gps_0)
+        print(" Battery: %s" % vehicle.battery)
+        print(" Last Heartbeat: %s" % vehicle.last_heartbeat)
+        print(" Is Armable?: %s" % vehicle.is_armable)
+        print(" System status: %s" % vehicle.system_status.state)
+        print(" Mode: %s" % vehicle.mode.name)    # settable
+        #arm_and_takeoff(vehicle)
+        #Close vehicle object before exiting script
+        """
+        while True:
+            #print(vehicle.location.capabilities)
+            #print("the latiiiiiii is:%s"% LocationGlobal)
+            #print("theiiiiiiiii lon is:%s"% vehicle.location.global_frame.lon)
+            print("the lat is:%s"% vehicle.location.global_frame.lat)
+            print("the lon is:%s"% vehicle.location.global_frame.lon)
+            time.sleep(4)
+        """
+
+    def mavlinkMsg(self):
+        while True:
+            line = self.mavProxyProcess.stdout.readline().rstrip('\n')
+            if not line:
+                break
+            print(line)
 ###############################################################################################################################
 ##################################################### Gui #####################################################################
 class Gui:
@@ -285,7 +345,12 @@ class Gui:
         
         self.button_rtl=Button(drone_control,text="LTR",width=9,height=3)
         self.button_rtl.grid(row=1,column=2,columnspan=1,sticky=W+N,padx=4,pady=4)
+
+        self.drone_connect_thread = threading.Thread(name='drone connect',target=self.drone_connect)
+        self.drone_connect_thread.start()
         
+    def drone_connect(self):
+        self.droneVehicle=DroneControl()
         """
         self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
         self.button_connect.place(relx=0.5, rely=0.01,anchor=N)
@@ -314,13 +379,15 @@ class Gui:
             self.Disconnect(master)
 
     def Connect(self,master):  #connect to the system
-        self.p=PersonDetection()
+        self.detectionObj=PersonDetection()
+        
+        
         self.person_detection_video = threading.Thread(name='person_detection_video',target=lambda:self.CamDrone(master))
         self.person_detection_video.start()
         
     def Disconnect(self,master):    #disconnect from button
         print("in disccinecttttttttttttttttttttttttttttt")
-        self.p.Close_detection()
+        self.detectionObj.Close_detection()
         self.isConnect=False
         #time.sleep(1)
         self.video_window.destroy()
@@ -340,14 +407,23 @@ class Gui:
             
     def CamDrone(self,master):
         self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+        self.socket_video.settimeout(15)
         HOST=''
         PORT=8089
         print("conecting to person detection")
-        self.socket_video.bind((HOST,PORT))
-        print 'Socket bind complete'
-        self.socket_video.listen(10)
-        print 'Socket now listening'
-        conn,addr=self.socket_video.accept()
+        try:
+            self.socket_video.bind((HOST,PORT))
+            print 'Socket bind complete'
+            self.socket_video.listen(10)
+            print 'Socket now listening'
+            conn,addr=self.socket_video.accept()
+            conn.setblocking(1)
+        except socket.error, exc:
+            print("error,problem video connect: %s" % exc)
+            self.isConnect=False
+            self.button_connect.config(text="Connect")
+            sys.exit(1)
+        
         data = ""
         payload_size = struct.calcsize("L")
         #time.sleep(5)
