@@ -233,16 +233,15 @@ class DroneControl:
 ##################################################### Gui #####################################################################
 class Gui:
     def __init__(self,master):      
-        master.geometry("900x650")
-        #frame = Frame(master,width=1200,height=800)
+        master.geometry("950x650")
         master.title("Rescue Drune")
-        
+
+        #section the main frame to rows and columns.
         for x in xrange(5):
             master.grid_columnconfigure(x, weight=1)
         for y in xrange(5):    
             master.grid_rowconfigure(y, weight=1)
             
-        print("hhhh")
         #drone_control frames
         drone_control = Frame(master, bg='yellow')
         
@@ -251,46 +250,55 @@ class Gui:
         for y in xrange(4):    
             drone_control.grid_rowconfigure(y, weight=1)
             
-        drone_control.grid(row=0 ,column=1, rowspan=4,columnspan=5,sticky=W+N+E+S)
+        drone_control.grid(row=0 ,column=1,columnspan=5,sticky=W+N+E+S)
         
         #video_window frames
-    
         self.video_window = Label(master,width=65,height=26,borderwidth=2, relief="groove",bg="gray")
         self.video_window.grid(row=0,column=0,sticky=W+N+E+S,padx=5, pady=5)
         
         #msg_drone frames
-        msg_drone = Frame(master,height=200, bg='red')
+        indication_frame = Frame(master,height=200, bg='red')
         for x in xrange(5):
-            msg_drone.grid_columnconfigure(x, weight=1)
+            indication_frame.grid_columnconfigure(x, weight=1)
         for y in xrange(2):    
-            msg_drone.grid_rowconfigure(y, weight=1)
-        msg_drone.grid(row=1,column=0,columnspan=5,rowspan=5,sticky=W+N+E+S)
-        """
-        monitor_msgFrame=Frame(msg_drone,width=25)
-        monitor_msgFrame.grid_columnconfigure(0, weight=1)
-        monitor_msgFrame.grid_rowconfigure(0, weight=1)
-        monitor_msgFrame.grid_columnconfigure(1, weight=1)
-        monitor_msgFrame.grid(row=0,column=0,columnspan=2,rowspan=3,sticky=W+N+S+E)
-        """
-        monitor_msg=Text(msg_drone,width=30)
+            indication_frame.grid_rowconfigure(y, weight=1)
+        indication_frame.grid(row=1,column=0,columnspan=6,rowspan=5,sticky=W+N+E+S)
+
+        #frame for msg from the drone and software
+        monitor_msg=Text(indication_frame,width=30)
         monitor_msg.grid(row=0,column=0,sticky=W+N+S+E)
-        
-        scrollbar = Scrollbar(msg_drone)
+        scrollbar = Scrollbar(indication_frame)
         scrollbar.grid(row=0,column=1,sticky=W+N+S)
-        
         monitor_msg.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=monitor_msg.yview)
         
-        #frames zone
-        #self.video_window.grid_columnconfigure(1, weight=1)
-        #self.video_window.grid_rowconfigure(1, weight=1)
-        
-       
+
         self.isConnect=False
         self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
-        self.button_connect.grid(row=0,column=1,sticky=W+N)
+        self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
        
-        print("after therd personnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn")
+        self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3)
+        self.button_auto.grid(row=1,column=0,columnspan=1,sticky=W+N,padx=4,pady=4)
+
+        self.button_manual=Button(drone_control,text="Manual",width=9,height=3)
+        self.button_manual.grid(row=1,column=1,columnspan=1,sticky=W+N,pady=4)
+        
+        self.button_rtl=Button(drone_control,text="LTR",width=9,height=3)
+        self.button_rtl.grid(row=1,column=2,columnspan=1,sticky=W+N,padx=4,pady=4)
+        
+        """
+        self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
+        self.button_connect.place(relx=0.5, rely=0.01,anchor=N)
+       
+        self.button_auto=Button(drone_control,text="Auto",width=7,height=3)
+        self.button_auto.place(relx=0.1, rely=0.3,anchor=W)
+
+        self.button_manual=Button(drone_control,text="Manual",width=7,height=3)
+        self.button_manual.place(relx=0.5, rely=0.3,anchor=CENTER)
+        
+        self.button_rtl=Button(drone_control,text="LTR",width=7,height=3)
+        self.button_rtl.place(relx=0.9, rely=0.3,anchor=E)
+        """         
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
         
     def Switch_OnOff(self,master):
