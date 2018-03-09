@@ -229,63 +229,66 @@ class PersonDetection:
 
 class DroneControl:
     def __init__(self):
-
         self.mavlinkConnected=False
-        self.mavlinkTimeOut=False
+        
+         
+    def mavProxy_connect(self):
+        self.mavlinkTimeOut=False #120s to chance connect mavproxy
         mavProxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
         self.mavlink_proc = subprocess.Popen(mavProxy,shell=True,stdin=PIPE,stdout=subprocess.PIPE)
         
-    def mavlink_connect(self):
-        
+        time.sleep(1)
         print("is in mavproxy")
-
-        # wait to mavlink that connect to 3dr.
-        #self.msg_from_mavlink = threading.Thread(name='mavlinkMsg',target=self.mavlinkMsg)
-        #self.msg_from_mavlink.start()
-        #self.time_mavlinkConnect = threading.Thread(name='mavlinkMsg',target=self.waitToConnect)
-        #self.time_mavlinkConnect.start()
         wait=True
-        while self.mavlinkConnected is False:
-            if wait is True:
-                wait=False
-                self.msg_from_mavlink = threading.Thread(name='mavlinkMsg',target=self.mavlinkMsg)
-                self.msg_from_mavlink.start()
-            elif self.mavlinkTimeOut is True:
+        self.msg_from_mavlink = threading.Thread(name='mavlinkMsg',target=self.mavlinkMsg) #start to read msg from mavProxy
+        self.msg_from_mavlink.start()
+        while self.mavlinkConnected is False: # wait to connected
+            if self.mavlinkTimeOut is True: #wait only 120s to connected
                 print("in oout")
                 break
         
-        print("after mavlink")
-        if self.mavlinkConnected is True :
+        if self.mavlinkConnected is True : #the connected succeeded
             print("is need to connect")
             connecting_drone()
-        else:
+        else:                               #the connected not succeed
+            self.mavlinkTimeOut=False
+            self.droneDisconnect()
             print("error mavlink connect")
                
     def mavlinkMsg(self):
-        self.time_mavlinkConnect = threading.Thread(name='waitToConnect',target=self.waitToConnect)
-        self.time_mavlinkConnect.start() 
-        while self.mavlinkTimeOut is False:
-            print("H")
+        self.stopTimer=False
+        self.time_mavlinkConnect = threading.Thread(name='waitToConnect',target=self.timerConnectMavproxy) #start run 120sec
+        self.time_mavlinkConnect.start()
+        
+        while self.mavlinkTimeOut is False:     #read the msg from mavproxy
+            print("close theard mavlink wait")
             connect = self.mavlink_proc.stdout.readline().split(" ")[0] #if the line = Saved 773 parmeters to mav.prm the mavProxy connect to 3DR.
             print(connect)
-            if(str(connect) == "Saved"):
+            if(str(connect) == "Saved"):        #succeeded
                 print(connect)
                 print("close theard mavlink wait")
+                self.stopTimer=True
                 self.mavlinkConnected=True 
                 break
                  
-    def waitToConnect(self):
-        time.sleep(10)
-        self.mavlinkTimeOut=True
+    def timerConnectMavproxy(self):    #this function is timer to connect mavProxy,if is not connected after 120s is stop the connected.
+        sec=0
+        while self.stopTimer is False:
+            sec+=1
+            if sec == 120:
+                self.mavlinkTimeOut=True
+                break
+            time.sleep(1)  
         print("time out")
 
     def droneDisconnect(self):
+        #if self.mavlinkConnected is True:
+        #else:
         self.mavlinkTimeOut=True
-        self.mavlink_proc.stdin.write('\x03')
-        self.mavlink_proc.stdin.flush()
-        time.sleep(7)
-        self.mavlink_proc.kill()
+        pid=self.mavlink_proc.pid
+        subprocess.Popen('taskkill /F /T /PID %i' % pid,shell=True)
         print("kill the proc")
+        
     def connecting_drone(self):
 
 
@@ -383,10 +386,13 @@ class Gui:
         
 
         self.isConnect=False
-        self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
+        #self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
+        #self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
+
+        self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=self.ccc)
         self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
-       
-        self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3,command=self.ccc)
+        
+        self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3)
         self.button_auto.grid(row=1,column=0,columnspan=1,sticky=W+N,padx=4,pady=4)
 
         self.button_manual=Button(drone_control,text="Manual",width=9,height=3)
@@ -401,7 +407,7 @@ class Gui:
         
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
     def ccc(self):
-        self.cvc = threading.Thread(name='drone connect',target=lambda:self.droneVehicle.mavlink_connect())
+        self.cvc = threading.Thread(name='drone connect',target=lambda:self.droneVehicle.mavProxy_connect())
         self.cvc.start()
         #self.droneVehicle.mavlink_connect()
     def drone_connect(self):
@@ -464,6 +470,7 @@ class Gui:
             self.droneVehicle.droneDisconnect() #only for check nowwww
             time.sleep(2)
             root.destroy()
+            
             
     def CamDrone(self,master):
         self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -535,6 +542,7 @@ if __name__ == "__main__":
     
     root.mainloop()
     print("after person detection")
+    sys.exit()
     #queue = Queue.Queue()
     #mavThread =threading.Thread(name='mavProxyThread',target=mavProxy)
     #mavThread.start()
