@@ -268,7 +268,6 @@ class DroneControl:
             if(str(connect) == "Failed"): 
                 self.droneDisconnect(gui)                      #kill the subprocess before exit or connect again
                 break
-            
             if(str(connect) == "Saved"):        #succeeded
                 print(connect)
                 print("close theard mavlink wait")
@@ -287,7 +286,7 @@ class DroneControl:
         print("time out")
 
     def droneDisconnect(self,gui):
-        self.mavlinkTimeOut=False                   #reset the timer to connection
+        self.mavlinkTimeOut=True                    #reset the timer to connection
         gui.droneIsConnect=False                    #to reset the option to connect again
         gui.button_connect.config(text="Connect")   #to reset the name button to connect again
         pid=self.mavlink_proc.pid
