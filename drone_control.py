@@ -235,6 +235,7 @@ class DroneControl:
     def mavProxy_connect(self):
         self.mavlinkTimeOut=False #120s to chance connect mavproxy
         mavProxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+        droneKitSitl ='127.0.0.1:14549'
         self.mavlink_proc = subprocess.Popen(mavProxy,shell=True,stdin=PIPE,stdout=subprocess.PIPE)
         
         time.sleep(1)
@@ -289,16 +290,53 @@ class DroneControl:
         subprocess.Popen('taskkill /F /T /PID %i' % pid,shell=True)
         print("kill the proc")
         
+    def auto_mode(self):
+        self.arm_and_takeoff(20)
+        self.vehicle.mode = VehicleMode("AUTO")
+    def arm_and_takeoff(self,aTargetAltitude):  #Arms vehicle and fly to aTargetAltitude.
+        
+        if self.vehicle.armed is False:
+            print("Basic pre-arm checks")
+            # Don't try to arm until autopilot is ready
+            while not self.vehicle.is_armable:
+                print(" Waiting for vehicle to initialise...")
+                time.sleep(1)
+
+            print("Arming motors")
+            # Copter should arm in GUIDED mode
+            self.vehicle.mode = VehicleMode("GUIDED")
+            self.vehicle.armed = True
+
+            # Confirm vehicle armed before attempting to take off
+            while not self.vehicle.armed:
+                print(" Waiting for arming...")
+                time.sleep(1)
+
+            print("Taking off!")
+            self.vehicle.simple_takeoff(aTargetAltitude)  # Take off to target altitude
+
+            # Wait until the vehicle reaches a safe height before processing the goto
+            #  (otherwise the command after Vehicle.simple_takeoff will execute
+            #   immediately).
+            while True:
+                print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
+                # Break and return from function just below target altitude.
+                if self.vehicle.location.global_relative_frame.alt >= aTargetAltitude * 0.95:
+                    print("Reached target altitude")
+                    break
+                time.sleep(1)
+        else:
+            print("the copter is armed")
+        
     def connecting_drone(self):
 
-
-        
+        droneKitSitl ='127.0.0.1:14549'
         # Connect to the Vehicle.
         print "Connecting to vehicle on: udp:127.0.0.1:14551"
         try:
             #connecting to the vehicle by udp- this we can also open the massion planner with the python
             #vehicle = connect("127.0.0.1:14551",wait_ready=False,baud=57600)
-            vehicle = connect("127.0.0.1:14551",heartbeat_timeout=15)
+            self.vehicle = connect(droneKitSitl,heartbeat_timeout=15)
             #wait_ready is for that all info from drune upload 100%
             #vehicle.wait_ready(True, timeout=50)
             #print("the vehicle is ready")
@@ -320,12 +358,12 @@ class DroneControl:
         print('helooooo momi')
         #vehicle attributes (state)
         print("Get some vehicle attribute values:")
-        print(" GPS: %s" % vehicle.gps_0)
-        print(" Battery: %s" % vehicle.battery)
-        print(" Last Heartbeat: %s" % vehicle.last_heartbeat)
-        print(" Is Armable?: %s" % vehicle.is_armable)
-        print(" System status: %s" % vehicle.system_status.state)
-        print(" Mode: %s" % vehicle.mode.name)    # settable
+        print(" GPS: %s" % self.vehicle.gps_0)
+        print(" Battery: %s" % self.vehicle.battery)
+        print(" Last Heartbeat: %s" % self.vehicle.last_heartbeat)
+        print(" Is Armable?: %s" % self.vehicle.is_armable)
+        print(" System status: %s" % self.vehicle.system_status.state)
+        print(" Mode: %s" % self.vehicle.mode.name)    # settable
         #arm_and_takeoff(vehicle)
         #Close vehicle object before exiting script
         
@@ -347,7 +385,7 @@ class Gui:
     def __init__(self,master):      
         master.geometry("950x650")
         master.title("Rescue Drune")
-
+        self.droneVehicle=DroneControl()
         #section the main frame to rows and columns.
         for x in xrange(5):
             master.grid_columnconfigure(x, weight=1)
@@ -384,73 +422,73 @@ class Gui:
         monitor_msg.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=monitor_msg.yview)
         
-
-        self.isConnect=False
+        monitor_msg.insert(END, 'default text')
+        self.droneIsConnect=False #this bool to know if the system connected to the drone and video system
+        self.sitlIsConnect=False #this bool to know if the system connected to the simulator
+        
         #self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
         #self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
-
-        self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=self.ccc)
+        
+        """connect to drone"""
+        self.button_connect=Button(drone_control,text="Connect",width=9, height=2,command=lambda:self.Switch_OnOff(master,'drone'))
         self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
         
-        self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3)
+        """connect to SITL"""
+        self.button_connect_sitl=Button(drone_control,text="ConnectSITL",width=9, height=2, command=lambda:self.Switch_OnOff(master,'sitl'))
+        self.button_connect_sitl.grid(row=0,column=0,sticky=W+N,pady=4)
+
+        """AUTO mode"""
+        self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3,command=self.send_auto_mode)
         self.button_auto.grid(row=1,column=0,columnspan=1,sticky=W+N,padx=4,pady=4)
 
-        self.button_manual=Button(drone_control,text="Manual",width=9,height=3)
+        self.button_manual=Button(drone_control,text="Manual",width=9,height=3,command=self.ccc)
         self.button_manual.grid(row=1,column=1,columnspan=1,sticky=W+N,pady=4)
         
-        self.button_rtl=Button(drone_control,text="LTR",width=9,height=3)
+        self.button_rtl=Button(drone_control,text="RTL",width=9,height=3)
         self.button_rtl.grid(row=1,column=2,columnspan=1,sticky=W+N,padx=4,pady=4)
 
-        self.drone_connect_thread = threading.Thread(name='drone connect',target=self.drone_connect)
-        self.drone_connect_thread.start()
-
-        
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
     def ccc(self):
-        self.cvc = threading.Thread(name='drone connect',target=lambda:self.droneVehicle.mavProxy_connect())
-        self.cvc.start()
-        #self.droneVehicle.mavlink_connect()
-    def drone_connect(self):
-        self.droneVehicle=DroneControl()
-        """
-        self.button_connect=Button(drone_control,text="Connect",width=9, height=2, command=lambda:self.Switch_OnOff(master))
-        self.button_connect.place(relx=0.5, rely=0.01,anchor=N)
-       
-        self.button_auto=Button(drone_control,text="Auto",width=7,height=3)
-        self.button_auto.place(relx=0.1, rely=0.3,anchor=W)
+        print("im here sgfsfgsfgsfgsgsfgsgsfsfggsf")
+    #this function send to drone move to AUTO mode
+    def send_auto_mode(self):
+        self.auto = threading.Thread(name='drone connect',target=lambda:self.droneVehicle.auto_mode())
+        self.auto.start()
 
-        self.button_manual=Button(drone_control,text="Manual",width=7,height=3)
-        self.button_manual.place(relx=0.5, rely=0.3,anchor=CENTER)
-        
-        self.button_rtl=Button(drone_control,text="LTR",width=7,height=3)
-        self.button_rtl.place(relx=0.9, rely=0.3,anchor=E)
-        """         
-        
-        
-    def Switch_OnOff(self,master):
-        print("in switcher")
-        if self.isConnect is False:
-            print("is here")
-            self.button_connect.config(text="Disconnect")
-            self.isConnect=True
-            self.Connect(master)
+    def Switch_OnOff(self,master,key):
+        if key =='drone':
+            if self.droneIsConnect is False:
+                print("is here")
+                self.button_connect.config(text="Disconnect")
+                self.droneIsConnect=True
+                self.drone_connect()
+            else:
+                self.button_connect.config(text="Connect")
+                self.isConnect=False
+                self.Disconnect()
         else:
-            self.button_connect.config(text="Connect")
-            self.isConnect=False
-            self.Disconnect(master)
+            if
+            if self.sitlIsConnect is False:
+                self.button_connect_sitl.config(text="Disconnect")
+                self.sitlIsConnect=True
+                self.drone_connect()
+            else:
+                self.button_connect_sitl.config(text="Connect")
+                self.sitlIsConnect=False
+                self.Disconnect()
 
-    def Connect(self,master):  #connect to the system
-        self.detectionObj=PersonDetection()
+    def drone_connect(self):  #connect to the system
+
+        self.droneVehicle.connecting_drone()
+        #self.detectionObj=PersonDetection()
+        #self.person_detection_video = threading.Thread(name='person_detection_video',target=lambda:self.CamDrone(master))
+        #self.person_detection_video.start()
         
-        
-        self.person_detection_video = threading.Thread(name='person_detection_video',target=lambda:self.CamDrone(master))
-        self.person_detection_video.start()
-        
-    def Disconnect(self,master):    #disconnect from button
+    def Disconnect(self):    #disconnect from button
         print("in disccinecttttttttttttttttttttttttttttt")
         self.droneVehicle.droneDisconnect()
         self.detectionObj.Close_detection()
-        self.isConnect=False
+        self.droneIsConnect=False
         #time.sleep(1)
         self.video_window.destroy()
         self.video_window = Label(master,width=65,height=26,borderwidth=2, relief="groove",bg="gray")
@@ -459,20 +497,20 @@ class Gui:
         self.socket_video.close()
         
     def on_closing(self):   #when the user close the window on X
-        if self.isConnect is True:
-            self.isConnect=False
-            self.droneVehicle.droneDisconnect()
+        if self.droneIsConnect is True:
+            self.droneIsConnect=False
+            #self.droneVehicle.droneDisconnect()
             time.sleep(1)
             self.person_detection_video.join()
             root.destroy()
         else:
             print("i im hererrrrrr")
-            self.droneVehicle.droneDisconnect() #only for check nowwww
+           # self.droneVehicle.droneDisconnect() #only for check nowwww
             time.sleep(2)
             root.destroy()
             
             
-    def CamDrone(self,master):
+    def CamDrone(self): #master??
         self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
         self.socket_video.settimeout(15)
         HOST=''
@@ -487,7 +525,7 @@ class Gui:
             conn.setblocking(1)
         except socket.error, exc:
             print("error,problem video connect: %s" % exc)
-            self.isConnect=False
+            self.droneIsConnect=False
             self.button_connect.config(text="Connect")
             sys.exit(1)
         
@@ -501,7 +539,7 @@ class Gui:
         #self.video = Label(master,borderwidth=2, relief="groove")
         #self.video.grid(row=0,column=0,sticky=W+N+E+S,padx=5, pady=5)
         openLabel=False
-        while self.isConnect:
+        while self.droneIsConnect:
             while len(data) < payload_size:
                 data += conn.recv(4096)
             packed_msg_size = data[:payload_size]
