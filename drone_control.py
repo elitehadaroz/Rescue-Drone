@@ -156,23 +156,7 @@ class PersonDetection:
         print ('detection process')
         person_detection = "py person_detection.py"  # launch the person_detection script using bash
         self.person_detectionProcess = subprocess.Popen(person_detection,shell=True, stdout=subprocess.PIPE)
-        """
-        print("now video")
-        #video thread
-        self.socket_video=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        self.HOST=''
-        self.PORT=8089
-        print("conecting to person detection")
-        self.socket_video.bind((self.HOST,self.PORT))
-        print 'Socket bind complete'
-        self.socket_video.listen(10)
-        print 'Socket now listening'
-        self.conn,self.addr=self.socket_video.accept()
-        self.data = ""
-        self.payload_size = struct.calcsize("L")
-        person_detection_video = threading.Thread(name='person_detection_video',target=self.DetectionVideo(yt))
-        person_detection_video.start()
-        """
+
         #msg thread
         #self.DetectionMsg(self.person_detectionProcess)
         self.person_detection_msg = threading.Thread(name='person_detection_msg',target=self.DetectionMsg)
@@ -290,7 +274,8 @@ class DroneControl:
         #gui.droneIsConnect=False                    #to reset the option to connect again
         #gui.button_connect.config(text="Connect")   #to reset the name button to connect again
         pid=self.mavlink_proc.pid
-        subprocess.Popen('taskkill /F /T /PID %i' % pid,shell=True)
+        p=subprocess.Popen('taskkill /F /T /PID %i' % pid,shell=True)
+        p.kill()
         print("kill the proc")
         
     def auto_mode(self):
@@ -380,41 +365,28 @@ class DroneControl:
     def connecting_sitl(self):
         droneKitSitl ='dronekit-sitl copter --home=31.7965240478516,35.3291511535645,248.839996337891,240'
         self.droneKitSitl_proc = subprocess.Popen(droneKitSitl,shell=True,stdin=PIPE,stdout=subprocess.PIPE)
-        mavProxy_sitl_theard=threading.Thread(name='start mavProxy sitl',target=self.connection_mavProxy_sitl)
-        mavProxy_sitl_theard.start()
-        #os.system(droneKitSitl)
         print("after subprocess sitl")
-        #time.sleep(3)
-        #mavProxy_sitl_theard=threading.Thread(name='start mavProxy sitl',target=self.connection_mavProxy_sitl)
-        #mavProxy_sitl_theard.start()
-    def connection_mavProxy_sitl(self):
-        time.sleep(4)
+
+        time.sleep(1)
         mavProxy_sitl ='mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:10.1.49.130:14550 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551'
         self.mavProxy_sitl_proc = subprocess.Popen(mavProxy_sitl,shell=True,stdin=PIPE,stdout=subprocess.PIPE)
-        #os.system(mavProxy_sitl)
-        #sitl_theard_test_msg=threading.Thread(name='sitl msg',target=self.listen)
-        #sitl_theard_test_msg.start()
+     
         print("im in mavproxy sitl connection")
-        #time.sleep(7)
-        #self.connecting_drone()
-        #self.vehicle = connect(droneKitSitl,heartbeat_timeout=15)
+       
         
     def sitl_disconnect(self):
         print("im in sitl disconeted")
         self.serch_pid_port=subprocess.Popen('netstat -ano | findstr :5760',shell=True,stdin=PIPE,stdout=subprocess.PIPE)
-        #sitl_theard_test_msg=threading.Thread(name='sitl msg',target=self.listen)
-        #sitl_theard_test_msg.start()
-        #time.sleep(1)
         port_pid_task = self.serch_pid_port.stdout.readline().split(" ") #the line that pid of port 5760 is open
         port_pid=int(port_pid_task[len(port_pid_task)-1])
         print(port_pid)
         subprocess.Popen('taskkill /F /T /PID %i' % port_pid,shell=True)
-        
+        self.droneKitSitl_proc.kill()
         pid_mavProxy_sitl_proc=self.mavProxy_sitl_proc.pid
         print(pid_mavProxy_sitl_proc)
-        subprocess.Popen('taskkill /F /T /PID %i' % pid_mavProxy_sitl_proc,shell=True)
-        #pid_mavProxySitl=self.mavProxy_sitl_proc.pid
-        #subprocess.Popen('taskkill /F /T /PID %i' % pid_mavProxySitl,shell=True)
+        p=subprocess.Popen('taskkill /F /T /PID %i' % pid_mavProxy_sitl_proc,shell=True)
+        p.kill()
+    
 
     def listen(self):
        while True:     #read the msg from mavproxy
