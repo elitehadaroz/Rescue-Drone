@@ -20,6 +20,7 @@ import pickle
 from Tkinter import *
 from PIL import Image, ImageTk
 import numpy as np
+from tkinter.font import Font
 
 #vehicle =None
 #this for use simulation in drone 
@@ -173,13 +174,9 @@ class PersonDetection:
             if not msg_detection:
                 print "im in breack"
                 break
-            print(msg_detection)
-            person='person'
-            if msg_detection == 'person':
-                print(line)
-               # self.droneVehicle.person_detected()
-            else:
-                print "is not"
+            if msg_detection is not None:
+                print(msg_detection+ "he he he")
+                self.droneVehicle.person_detected()
                 
     
                 
@@ -188,9 +185,9 @@ class PersonDetection:
 ################################################ Drone Control ################################################################
 
 class DroneControl:
-    def __init__(self):
+    def __init__(self,func_msg):
         self.mavlinkConnected=False
-        
+        self.show_msg_monitor=func_msg
          
     def mavProxy_connect(self):
         
@@ -298,7 +295,7 @@ class DroneControl:
             #connecting to the vehicle by udp- this we can also open the massion planner with the python
             self.vehicle = connect("127.0.0.1:14551",wait_ready=False,baud=57600)
             #wait_ready is for that all info from drune upload 100%
-            self.vehicle.wait_ready(True, timeout=50)
+            self.vehicle.wait_ready(True, timeout=60)
             #print("the vehicle is ready")
         # Bad TCP connection
         except socket.error:
@@ -365,9 +362,10 @@ class DroneControl:
         #sitl_theard_test_msg.start()
         #time.sleep(1)
         port_pid_task = self.serch_pid_port.stdout.readline().split(" ") #the line that pid of port 5760 is open
-        port_pid=int(port_pid_task[len(port_pid_task)-1])
-        print(port_pid)
-        subprocess.Popen('taskkill /F /T /PID %i' % port_pid,shell=True)
+        if port_pid_task is not None:
+            port_pid=int(port_pid_task[len(port_pid_task)-1])
+            print(port_pid)
+            subprocess.Popen('taskkill /F /T /PID %i' % port_pid,shell=True)
         
         pid_mavProxy_sitl_proc=self.mavProxy_sitl_proc.pid
         print(pid_mavProxy_sitl_proc)
@@ -381,11 +379,11 @@ class DroneControl:
             line = self.mavProxy_sitl_proc.stdout.readline() #if the line = Saved 773 parmeters to mav.prm the mavProxy connect to 3DR.
             
             print(line)
-"""
+
     def person_detected(self):
         print" i in person detected"
         self.vehicle.mode = VehicleMode("GUIDED")
-"""
+
 
 ###############################################################################################################################
 ##################################################### Gui #####################################################################
@@ -393,7 +391,7 @@ class Gui:
     def __init__(self,master):      
         master.geometry("950x650")
         master.title("Rescue Drune")
-        self.droneVehicle=DroneControl()
+        self.droneVehicle=DroneControl(self.show_msg_monitor)
         #section the main frame to rows and columns.
         for x in xrange(5):
             master.grid_columnconfigure(x, weight=1)
@@ -401,7 +399,7 @@ class Gui:
             master.grid_rowconfigure(y, weight=1)
             
         #drone_control frames
-        drone_control = Frame(master, bg='yellow')
+        drone_control = Frame(master, bg='gray')
         
         for x in xrange(2):
             drone_control.grid_columnconfigure(x, weight=1)
@@ -415,7 +413,7 @@ class Gui:
         self.video_window.grid(row=0,column=0,sticky=W+N+E+S,padx=5, pady=5)
         
         #msg_drone frames
-        indication_frame = Frame(master,height=200, bg='red')
+        indication_frame = Frame(master,height=200, bg='gray')
         for x in xrange(5):
             indication_frame.grid_columnconfigure(x, weight=1)
         for y in xrange(2):    
@@ -423,14 +421,16 @@ class Gui:
         indication_frame.grid(row=1,column=0,columnspan=6,rowspan=5,sticky=W+N+E+S)
 
         #frame for msg from the drone and software
-        monitor_msg=Text(indication_frame,width=30)
-        monitor_msg.grid(row=0,column=0,sticky=W+N+S+E)
+        self.monitor_msg=Text(indication_frame,width=30,background='black')
+        self.monitor_msg.grid(row=0,column=0,sticky=W+N+S+E)
         scrollbar = Scrollbar(indication_frame)
         scrollbar.grid(row=0,column=1,sticky=W+N+S)
-        monitor_msg.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=monitor_msg.yview)
-        
-        monitor_msg.insert(END, 'default text')
+        self.monitor_msg.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.monitor_msg.yview)
+        self.monitor_msg.tag_configure("success", foreground='#00B400')
+        self.monitor_msg.tag_configure("error", foreground='#e60000')
+        self.monitor_msg.tag_configure("person", foreground='#00C5CD')
+        #monitor_msg.insert(END, 'default text')
         self.droneIsConnect=False #this bool to know if the system connected to the drone and video system
         self.sitlIsConnect=False #this bool to know if the system connected to the simulator
         
@@ -439,8 +439,8 @@ class Gui:
         self.button_connect.grid(row=0,column=1,sticky=W+N,pady=4)
         
         """connect to SITL"""
-        self.button_connect_sitl=Button(drone_control,text="ConnectSITL",width=9, height=2, command=lambda:self.Switch_OnOff(master,'sitl'))
-        self.button_connect_sitl.grid(row=0,column=0,sticky=W+N,pady=4)
+        self.button_connect_sitl=Button(drone_control,text="Connect\nSITL",width=9, height=2, command=lambda:self.Switch_OnOff(master,'sitl'))
+        self.button_connect_sitl.grid(row=0,column=0,sticky=W+N,padx=4,pady=4)
 
         """AUTO mode"""
         self.button_auto=Button(drone_control,text="Auto Search",width=9,height=3,command=self.send_auto_mode)
@@ -453,6 +453,9 @@ class Gui:
         self.button_rtl.grid(row=1,column=2,columnspan=1,sticky=W+N,padx=4,pady=4)
 
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.show_msg_monitor(">> im innnnln lknkn lknlk nlknrw klfokwmf fwfwwffw aaaaaa bbbbbbbb n","success")
+        self.show_msg_monitor(">> and i in new line",'error')
+        self.show_msg_monitor(">> perso person",'person')
     def ccc(self):
         print("im here sgfsfgsfgsfgsgsfgsgsfsfggsf")
     #this function send to drone move to AUTO mode
@@ -478,7 +481,7 @@ class Gui:
         else:
             if self.droneIsConnect is False:
                 if self.sitlIsConnect is False:
-                    self.button_connect_sitl.config(text="DisconnectSITL")
+                    self.button_connect_sitl.config(text="Disconnect\nSITL")
                     self.sitlIsConnect=True
                     self.drone_connect(key,master)
                 else:
@@ -588,7 +591,12 @@ class Gui:
                 break
 
     
-    #def camera(self):
+    def show_msg_monitor(self,msg,tag):
+        self.monitor_msg.config(state='normal')
+        self.monitor_msg.insert(END, msg + "\n",tag)
+        self.monitor_msg.config(state='disabled')
+        
+        
         
 ###############################################################################################################################
 ##################################################### main ####################################################################
