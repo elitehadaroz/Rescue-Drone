@@ -22,7 +22,7 @@ from PIL import Image, ImageTk
 import numpy as np
 
 
-############################################# person detection ###############################################################
+############################################# person detection ##############################################################
 class PersonDetection:
     def __init__(self, drone_vehicle_obj):
 
