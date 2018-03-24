@@ -32,7 +32,7 @@ sys.path.append("..")
 
 
 
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 # What model to download.
 MODEL_NAME = 'person_deection'
 #MODEL_FILE = MODEL_NAME + '.tar.gz'
@@ -140,7 +140,11 @@ def main():
           #if(category_index.get(value) for index in enumerate(classes[0]) == "person"):
           #cv2.imshow('object detection', cv2.resize(image_np, (480,640)))
           data = pickle.dumps(image_np,protocol=1) ### new code
-          clientsocket.sendall(struct.pack("L", len(data))+data) ### new code
+          try:
+            clientsocket.sendall(struct.pack("L", len(data)) + data)  ### new code
+          except socket.error:
+            break
+            #clientsocket.shutdown(socket.SHUT_RDWR)
           #img = Image.fromarray(image_np)
           #imgtk = ImageTk.PhotoImage(image=img)
           #lmain.imgtk = imgtk
