@@ -143,6 +143,7 @@ def main():
           try:
             clientsocket.sendall(struct.pack("L", len(data)) + data)  ### new code
           except socket.error:
+            print("the video break from person detection")
             break
             #clientsocket.shutdown(socket.SHUT_RDWR)
           #img = Image.fromarray(image_np)
