@@ -47,10 +47,10 @@ class PersonDetection:
                 break
             if msg_detection is not None:
                 print(msg_detection + "he he he")
-                try:
-                    self.gui.person_detected()
-                except:
-                    continue
+                #try:
+                    #self.gui.person_detected()
+                #except:
+                 #   continue
 
 
 ###############################################################################################################################
@@ -361,6 +361,7 @@ class Gui:
 
 
     def test(self):
+
         self.show_msg_monitor('Person detected', 'person')
         result = tkMessageBox.askyesno(title="Delete", message="Are You Sure?")
         result = 'yes'
@@ -391,6 +392,9 @@ class Gui:
                 else:
                     self.button_connect.config(text="Connect")
                     self.drone_is_connect = False
+                    disconnect_thread = threading.Thread(name='disconnect from sitl',
+                                                         target=lambda: self.disconnect(key, master))
+                    disconnect_thread.start()
                     self.disconnect(key, master)
             else:
                 print("please disconnect from the SITL , and try again")
@@ -403,7 +407,10 @@ class Gui:
                 else:
                     self.button_connect_sitl.config(text="ConnectSITL")
                     self.sitl_is_connect = False
-                    self.disconnect(key, master)
+                    print(key)
+                    disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
+                    disconnect_thread.start()
+                    #self.disconnect(key, master)
             else:
                 print("please disconnect from the drone , and try again")
 
