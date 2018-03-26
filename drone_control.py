@@ -15,7 +15,7 @@ import cv2
 # import tkMessageBox
 from PIL import Image, ImageTk
 from dronekit import connect, VehicleMode, APIException  # Import DroneKit-Python
-
+from winsound import *
 
 
 ############################################# person detection ##############################################################
@@ -298,6 +298,7 @@ class Gui:
 
         self.drone_control.grid(row=0, column=1, columnspan=5, sticky=W + N + E + S)
 
+
         # video_window frames
         self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
         self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
@@ -324,9 +325,29 @@ class Gui:
         self.drone_is_connect = False  # this bool to know if the system connected to the drone and video system
         self.sitl_is_connect = False  # this bool to know if the system connected to the simulator
 
+        ########################################################################################
+        self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
+                                  labelanchor=N)
+        for x in xrange(5):
+            self.message_box.grid_columnconfigure(x, weight=1)
+        for y in xrange(2):
+            self.message_box.grid_rowconfigure(y, weight=1)
+        self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
 
+        message=Label(self.message_box, text="Inside the LabelFrame" )
+        message.grid(row=0,columnspan=5)
 
+        button_ok=Button(self.message_box,text='ok',width=9,height=2)
+        button_ok.grid(row=1,column=1)
 
+        button_no = Button(self.message_box, text='no', width=9, height=2)
+        button_no.grid(row=1,column=3)
+
+        boolvar = False
+
+        cb = Checkbutton(self.message_box, text="Check Me", variable=boolvar)
+        cb.grid(row=1,column=0)
+        ###############################################################################################
         """connect to drone"""
         self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,
                                      command=lambda: self.switch_on_off(master, 'drone'))
@@ -354,27 +375,18 @@ class Gui:
         self.message_box_person_pop =False
     def person_detected(self):
 
-        if not self.message_box_person_pop :
+        if not self.message_box_person_pop:
+            self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
+                                      labelanchor=N)
+            self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
             self.message_box_person_pop = True
-            auto = threading.Thread(name='drone connect', target=lambda :self.test())
-            auto.start()
 
 
-    def test(self):
 
-        self.show_msg_monitor('Person detected', 'person')
-        result = tkMessageBox.askyesno(title="Delete", message="Are You Sure?")
-        result = 'yes'
-        if result == 'yes':
-            print "Deleted"
-        else:
-            print "I'm Not Deleted Yet"
+    #def test(self):
 
-    def button_changed(self):
-        if self.drone_vehicle.drone_connected :
-            self.button_auto.config(state=NORMAL)
-            self.button_manual.config(state=NORMAL)
-            self.button_rtl.config(state=NORMAL)
+
+
 
     # this function send to drone move to AUTO mode
     def send_auto_mode(self):
@@ -404,6 +416,8 @@ class Gui:
                     self.button_connect_sitl.config(text="Disconnect\nSITL")
                     self.sitl_is_connect = True
                     self.drone_connect(key, master)
+
+                    return PlaySound('media\Alarm.WAV', SND_FILENAME)
                 else:
                     self.button_connect_sitl.config(text="ConnectSITL")
                     self.sitl_is_connect = False
