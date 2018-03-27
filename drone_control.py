@@ -47,10 +47,10 @@ class PersonDetection:
                 break
             if msg_detection is not None:
                 print(msg_detection + "he he he")
-                #try:
-                    #self.gui.person_detected()
-                #except:
-                 #   continue
+                try:
+                    self.drone_vehicle.person_detected()
+                except:
+                    continue
 
 
 ###############################################################################################################################
@@ -66,7 +66,7 @@ class DroneControl:
         self.vehicle=None
         self.stop_timer=None    #this boolean stop_timer is count X second to login option, if is pass X second the system stop trying to connect
         self.drone_connected=False
-        self.message_box_person_pop = False
+        self.person_is_detect = False
     def mav_proxy_connect(self):
 
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
@@ -207,7 +207,6 @@ class DroneControl:
         # Close vehicle object before exiting script
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected=True
-        self.gui.button_changed()
         print"the drone is connected"
         """
         while True:
@@ -260,16 +259,17 @@ class DroneControl:
             subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
         # pid_mavProxySitl=self.mavProxy_sitl_proc.pid
         # subprocess.Popen('taskkill /F /T /PID %i' % pid_mavProxySitl,shell=True)
-
+    """
     def listen(self):
         while True:  # read the msg from mavproxy
             time.sleep(1)
             line = self.mavProxy_sitl_proc.stdout.readline()  # if the line = Saved 773 parmeters to mav.prm the mavProxy connect to 3DR.
             print(line)
-
-
-
-
+    """
+    def person_detected(self):
+        if not self.person_is_detect:
+            self.person_is_detect=True
+            self.gui.show_msg_user()
 
 ###############################################################################################################################
 ##################################################### Gui #####################################################################
@@ -326,27 +326,9 @@ class Gui:
         self.sitl_is_connect = False  # this bool to know if the system connected to the simulator
 
         ########################################################################################
-        self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
-                                  labelanchor=N)
-        for x in xrange(5):
-            self.message_box.grid_columnconfigure(x, weight=1)
-        for y in xrange(2):
-            self.message_box.grid_rowconfigure(y, weight=1)
-        self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
 
-        message=Label(self.message_box, text="Inside the LabelFrame" )
-        message.grid(row=0,columnspan=5)
 
-        button_ok=Button(self.message_box,text='ok',width=9,height=2)
-        button_ok.grid(row=1,column=1)
 
-        button_no = Button(self.message_box, text='no', width=9, height=2)
-        button_no.grid(row=1,column=3)
-
-        boolvar = False
-
-        cb = Checkbutton(self.message_box, text="Check Me", variable=boolvar)
-        cb.grid(row=1,column=0)
         ###############################################################################################
         """connect to drone"""
         self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,
@@ -372,20 +354,6 @@ class Gui:
         # self.show_msg_monitor(">> im innnnln lknkn lknlk nlknrw klfokwmf fwfwwffw aaaaaa bbbbbbbb n","success")
         # self.show_msg_monitor(">> and i in new line",'error')
         # self.show_msg_monitor(">> perso person",'person')
-        self.message_box_person_pop =False
-    def person_detected(self):
-
-        if not self.message_box_person_pop:
-            self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
-                                      labelanchor=N)
-            self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
-            self.message_box_person_pop = True
-
-
-
-    #def test(self):
-
-
 
 
     # this function send to drone move to AUTO mode
@@ -416,8 +384,6 @@ class Gui:
                     self.button_connect_sitl.config(text="Disconnect\nSITL")
                     self.sitl_is_connect = True
                     self.drone_connect(key, master)
-
-                    return PlaySound('media\Alarm.WAV', SND_FILENAME)
                 else:
                     self.button_connect_sitl.config(text="ConnectSITL")
                     self.sitl_is_connect = False
@@ -525,6 +491,48 @@ class Gui:
         self.monitor_msg.config(state='normal')
         self.monitor_msg.insert(END, msg + "\n", tag)
         self.monitor_msg.config(state='disabled')
+
+
+    def show_msg_user(self):
+        print("i in person detection mmmmmmmmmmmmm")
+
+        message_box_person_pop = True
+        self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
+                                      labelanchor=N)
+        for x in xrange(5):
+            self.message_box.grid_columnconfigure(x, weight=1)
+        for y in xrange(2):
+            self.message_box.grid_rowconfigure(y, weight=1)
+        self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
+
+        message = Label(self.message_box, text="Inside the LabelFrame")
+        message.grid(row=0, columnspan=5)
+
+        button_ok = Button(self.message_box, text='ok', width=9, height=2,command=lambda :self.user_reply_message('ok'))
+        button_ok.grid(row=1, column=1)
+
+        button_no = Button(self.message_box, text='no', width=9, height=2,command=lambda :self.user_reply_message('no'))
+        button_no.grid(row=1, column=3)
+
+        sound_bool = BooleanVar()
+
+        start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool,message_box_person_pop))
+        start_alarm.start()
+
+        cb = Checkbutton(self.message_box, text="Check Me", variable=sound_bool)
+        cb.grid(row=1, column=0)
+
+    @staticmethod
+    def start_alarm (sound_bool,message_box_person_pop):    #the function call from show_msg_user and only on/off alarm when person detect
+        while message_box_person_pop is True:
+            if sound_bool.get() is False:
+                print sound_bool.get()
+
+                PlaySound('media\Alarm.wav', SND_FILENAME)
+                time.sleep(2)
+            else:
+                continue
+
 
 
 ###############################################################################################################################
