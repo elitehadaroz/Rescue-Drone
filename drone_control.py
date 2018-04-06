@@ -8,11 +8,11 @@ import subprocess
 import threading
 import time
 from Tkinter import *
+import ttk
 from mttkinter import mtTkinter
 from subprocess import PIPE
 import tkMessageBox
 import cv2
-# import tkMessageBox
 from PIL import Image, ImageTk
 from dronekit import connect, VehicleMode, APIException  # Import DroneKit-Python
 from winsound import *
@@ -67,6 +67,7 @@ class DroneControl:
         self.stop_timer=None    #this boolean stop_timer is count X second to login option, if is pass X second the system stop trying to connect
         self.drone_connected=False
         self.person_is_detect = False
+
     def mav_proxy_connect(self):
 
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
@@ -188,7 +189,7 @@ class DroneControl:
 
         # API Error
         except APIException:
-            print 'Timeoutgggggggg!'
+            print 'the Time is out!'
             return
         # Other error
         except:
@@ -232,7 +233,7 @@ class DroneControl:
 
     def connection_mavproxy_sitl(self):
         time.sleep(4)
-        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:10.1.49.130:14550 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551'
+        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:10.1.49.130:14550 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
         self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
         # os.system(mavProxy_sitl)
         # sitl_thread_test_msg=threading.Thread(name='sitl msg',target=self.listen)
@@ -268,8 +269,8 @@ class DroneControl:
     """
     def person_detected(self):
         if not self.person_is_detect:
-            self.person_is_detect=True
-            self.gui.show_msg_user()
+            self.person_is_detect = True
+            #self.gui.show_msg_user("person detection")
 
 ###############################################################################################################################
 ##################################################### Gui #####################################################################
@@ -279,87 +280,138 @@ class Gui:
         master.title("Rescue Drone")
         self.detection_obj=None #this Obj its person detection class
         self.socket_video=None  #the socket_video assigned to receive video from person_detection file.
-
-
+        self.message_box_pop = False
+        self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
         self.drone_vehicle = DroneControl(self)
-        # section the main frame to rows and columns.
-        for x in xrange(5):
-            master.grid_columnconfigure(x, weight=1)
-        for y in xrange(5):
-            master.grid_rowconfigure(y, weight=1)
+        self.drone_control = None
+        self.video_window = None
+        self.monitor_msg = None
 
-        # drone_control frames
-        self.drone_control = Frame(master, bg='gray')
-
-        for x in xrange(2):
-            self.drone_control.grid_columnconfigure(x, weight=1)
-        for y in xrange(4):
-            self.drone_control.grid_rowconfigure(y, weight=1)
-
-        self.drone_control.grid(row=0, column=1, columnspan=5, sticky=W + N + E + S)
-
-
-        # video_window frames
-        self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
-        self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
-
-        # msg_drone frames
-        indication_frame = Frame(master, height=200, bg='gray')
-        for x in xrange(5):
-            indication_frame.grid_columnconfigure(x, weight=1)
-        for y in xrange(2):
-            indication_frame.grid_rowconfigure(y, weight=1)
-        indication_frame.grid(row=1, column=0, columnspan=6, rowspan=5, sticky=W + N + E + S)
-
-        # frame for msg from the drone and software
-        self.monitor_msg = Text(indication_frame, width=30, background='black')
-        self.monitor_msg.grid(row=0, column=0, sticky=W + N + S + E)
-        scrollbar = Scrollbar(indication_frame)
-        scrollbar.grid(row=0, column=1, sticky=W + N + S)
-        self.monitor_msg.config(yscrollcommand=scrollbar.set)
-        scrollbar.config(command=self.monitor_msg.yview)
-        self.monitor_msg.tag_configure("success", foreground='#00B400')
-        self.monitor_msg.tag_configure("error", foreground='#e60000')
-        self.monitor_msg.tag_configure("person", foreground='#00C5CD')
-        # monitor_msg.insert(END, 'default text')
         self.drone_is_connect = False  # this bool to know if the system connected to the drone and video system
         self.sitl_is_connect = False  # this bool to know if the system connected to the simulator
 
+        # create the main frame to rows and columns.
+        for x in xrange(5):
+            master.grid_rowconfigure(x, weight=1)
+        for y in xrange(5):
+            master.grid_columnconfigure(y, weight=1)
+
+
+
+        # create panel for control drone
+        self.create_drone_control_panel(master)
+        # create panel for video from drone
+        self.create_video_panel(master)
+        # msg_drone frames
+        self.create_monitor_msg(master)
+        # monitor_msg.insert(END, 'default text')
+
         ########################################################################################
 
-
-
-        ###############################################################################################
-        """connect to drone"""
-        self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,
-                                     command=lambda: self.switch_on_off(master, 'drone'))
-        self.button_connect.grid(row=0, column=1, sticky=W + N, pady=4)
-
-        """connect to SITL"""
-        self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,
-                                          command=lambda: self.switch_on_off(master, 'sitl'))
-        self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
-
-        """AUTO mode"""
-        self.button_auto = Button(self.drone_control,state=DISABLED, text="Auto Search", width=9, height=3, command=self.send_auto_mode)
-        self.button_auto.grid(row=1, column=0, columnspan=1, sticky=W + N, padx=4, pady=4)
-
-        self.button_manual = Button(self.drone_control,state=DISABLED, text="Manual", width=9, height=3)
-        self.button_manual.grid(row=1, column=1, columnspan=1, sticky=W + N, pady=4)
-
-        self.button_rtl = Button(self.drone_control,state=DISABLED, text="RTL", width=9, height=3)
-        self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
 
         master.protocol("WM_DELETE_WINDOW", self.on_closing)
         # self.show_msg_monitor(">> im innnnln lknkn lknlk nlknrw klfokwmf fwfwwffw aaaaaa bbbbbbbb n","success")
         # self.show_msg_monitor(">> and i in new line",'error')
         # self.show_msg_monitor(">> perso person",'person')
 
+    def create_video_panel(self,master):
+        self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
+        self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
+
+    def create_drone_control_panel(self,master):
+        # drone_control frames
+        self.drone_control = Frame(master, bg='gray')
+
+        for x in xrange(4):
+            self.drone_control.grid_rowconfigure(x, weight=1)
+        for y in xrange(2):
+            self.drone_control.grid_columnconfigure(y, weight=1)
+
+
+        self.drone_control.grid(row=0, column=1, columnspan=5, sticky=W + N + E + S)
+
+        """button connect to drone"""
+        self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,
+                                     command=lambda: self.switch_on_off(master, 'drone'))
+        self.button_connect.grid(row=0, column=1, sticky=W + N, pady=4)
+
+        """button connect to SITL"""
+        self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,
+                                          command=lambda: self.switch_on_off(master, 'sitl'))
+        self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
+
+        """button AUTO mode"""
+        self.button_auto = Button(self.drone_control, state=DISABLED, text="Auto Search", width=9, height=3,
+                                  command=self.send_auto_mode)
+        self.button_auto.grid(row=1, column=0, columnspan=1, sticky=W + N, padx=4, pady=4)
+
+        """button MANUAL mode"""
+        self.button_manual = Button(self.drone_control, state=DISABLED, text="Manual", width=9, height=3)
+        self.button_manual.grid(row=1, column=1, columnspan=1, sticky=W + N, pady=4)
+
+        """button RTL mode"""
+        self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3)
+        self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
+
+    def create_monitor_msg(self,master):
+        indication_frame = Frame(master, height=200, bg='gray')
+        for x in xrange(2):
+            indication_frame.grid_rowconfigure(x, weight=1)
+        for y in xrange(5):
+            indication_frame.grid_columnconfigure(y, weight=1)
+
+        indication_frame.grid(row=1, column=0, columnspan=6, rowspan=5, sticky=W + N + E + S)
+
+        # frame for msg from the drone and software
+        self.monitor_msg = Text(indication_frame, width=30, background='black')
+        self.monitor_msg.grid(row=0, column=0, sticky=W + N + S + E)
+        scrollbar = Scrollbar(indication_frame)
+        scrollbar.grid(row=0, column=0, sticky=E + N + S)
+        self.monitor_msg.config(yscrollcommand=scrollbar.set)
+        scrollbar.config(command=self.monitor_msg.yview)
+        self.monitor_msg.tag_configure("success", foreground='#00B400')
+        self.monitor_msg.tag_configure("error", foreground='#e60000')
+        self.monitor_msg.tag_configure("person", foreground='#00C5CD')
+        self.create_info_panel(indication_frame)
+
+    def create_info_panel(self,indication_frame):
+        self.info = Frame(indication_frame, bg='#282828')
+        for x in xrange(10):
+            indication_frame.grid_rowconfigure(x, weight=1)
+        for y in xrange(5):
+            indication_frame.grid_columnconfigure(y, weight=1)
+
+        self.info.grid(row=0, column=1, columnspan=4, sticky=W + N + S + E)
+
+        self.altitude_label = Label(self.info, text="Altitude (m)",font=('Arial', 10), fg="white",bg='#282828')
+        self.altitude_label.grid(row=0, column=0,padx=10)
+        self.altitude_info = Label(self.info, text="0.00",font=('Arial', 20), fg="#BA55D3", bg='#282828')
+        self.altitude_info.grid(row=1,column=0,padx=10)
+
+        self.ground_speed_label = Label(self.info, text="Ground Speed (m/s)", font=('Arial', 10), fg="white", bg='#282828')
+        self.ground_speed_label.grid(row=2, column=0, padx=10)
+        self.ground_speed_info = Label(self.info, text="0.00", font=('Arial', 20), fg="#00FF00", bg='#282828')
+        self.ground_speed_info.grid(row=3, column=0, padx=10)
+
+        self.dist_to_home_label = Label(self.info, text="Dist to Home (m)", font=('Arial', 10), fg="white",bg='#282828')
+        self.dist_to_home_label.grid(row=4, column=0, padx=10)
+        self.dist_to_home_info = Label(self.info, text="0.00", font=('Arial', 20), fg="#00FFFF", bg='#282828')
+        self.dist_to_home_info.grid(row=5, column=0, padx=10)
+
+        self.bat_volt_label = Label(self.info, text="Bat Voltage (V)", font=('Arial', 10), fg="white",bg='#282828')
+        self.bat_volt_label.grid(row=6, column=0, padx=10)
+        self.bat_volt_info = Label(self.info, text="0.00", font=('Arial', 20), fg="#FFD700", bg='#282828')
+        self.bat_volt_info.grid(row=7, column=0, padx=10)
 
     # this function send to drone move to AUTO mode
     def send_auto_mode(self):
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
+
+    def allow_button(self):
+        self.button_auto.config(state=NORMAL)
+        self.button_manual.config(state=NORMAL)
+        self.button_rtl.config(state=NORMAL)
 
     def switch_on_off(self, master, key):
         if key == 'drone':
@@ -406,7 +458,7 @@ class Gui:
         person_detection_video = threading.Thread(name='person_detection_video',
                                                        target=lambda: self.cam_drone(master))
         person_detection_video.start()
-
+        self.allow_button()
     def disconnect(self, key, master):  # disconnect from button
         if key == 'drone':
             self.drone_vehicle.drone_disconnect()
@@ -415,6 +467,10 @@ class Gui:
         elif key == 'sitl':
             self.drone_vehicle.sitl_disconnect()
             self.sitl_is_connect = False  # change the bool sitl to false,is mean that sitl now is not connected
+
+        if self.message_box:
+            self.message_box.destroy()    #if the message box open destroy it.
+            self.message_box_pop = False  #reset the bool message box.
 
         self.detection_obj.close_detection()
         self.video_window.destroy()
@@ -493,10 +549,29 @@ class Gui:
         self.monitor_msg.config(state='disabled')
 
 
-    def show_msg_user(self):
-        print("i in person detection mmmmmmmmmmmmm")
+    def show_msg_user(self,key):
 
-        message_box_person_pop = True
+        if not self.message_box_pop:
+            self.message_box_pop = True
+
+            if key == "person detection":
+                text_message = "A person has been detected !\n do you want to continue search or send GPS location and RTL"
+                yes_button = "send GPS and RTL"
+                no_button = "continue to search"
+
+                self.create_message_box(text_message,yes_button,no_button)
+                sound_bool = BooleanVar()
+
+                start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool))
+                start_alarm.start()
+                """
+                change_color_title_msg = threading.Thread(name="change the title color msg",target=self.change_color)
+                change_color_title_msg.start()
+                """
+                button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
+                button_sound_on_oof.grid(row=1, column=0)
+
+    def create_message_box(self,text,yes,no):
         self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
                                       labelanchor=N)
         for x in xrange(5):
@@ -505,36 +580,38 @@ class Gui:
             self.message_box.grid_rowconfigure(y, weight=1)
         self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
 
-        message = Label(self.message_box, text="Inside the LabelFrame")
+        message = Label(self.message_box, text=text,font=10)
         message.grid(row=0, columnspan=5)
 
-        button_ok = Button(self.message_box, text='ok', width=9, height=2,command=lambda :self.user_reply_message('ok'))
-        button_ok.grid(row=1, column=1)
+        button_yes = Button(self.message_box, text=yes, width=15, height=2,
+                           command=lambda: self.user_reply_message('ok'))
+        button_yes.grid(row=1, column=1)
 
-        button_no = Button(self.message_box, text='no', width=9, height=2,command=lambda :self.user_reply_message('no'))
+        button_no = Button(self.message_box, text=no, width=15, height=2,
+                           command=lambda: self.user_reply_message('no'))
         button_no.grid(row=1, column=3)
 
-        sound_bool = BooleanVar()
+    #@staticmethod
 
-        start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool,message_box_person_pop))
-        start_alarm.start()
-
-        cb = Checkbutton(self.message_box, text="Check Me", variable=sound_bool)
-        cb.grid(row=1, column=0)
-
-    @staticmethod
-    def start_alarm (sound_bool,message_box_person_pop):    #the function call from show_msg_user and only on/off alarm when person detect
-        while message_box_person_pop is True:
+    """the function call from show_msg_user when detection a person."""
+    def start_alarm (self,sound_bool):    #the function call from show_msg_user and only on/off alarm when person detect
+        while self.message_box_pop:
             if sound_bool.get() is False:
                 print sound_bool.get()
-
                 PlaySound('media\Alarm.wav', SND_FILENAME)
                 time.sleep(2)
             else:
                 continue
+"""
+    def change_color(self):
 
-
-
+        while self.message_box_pop:
+            print "i in change color"
+            self.message_box.configure( fg='red' )
+            #*.style().configure(self.message_box,fg='white')
+            time.sleep(1)
+            self.message_box.configure( fg='white' )
+"""
 ###############################################################################################################################
 ##################################################### main ####################################################################
 if __name__ == "__main__":
@@ -545,3 +622,16 @@ if __name__ == "__main__":
     root.mainloop()
     print("after person detection")
     sys.exit()
+"""
+def get_distance_metres(aLocation1, aLocation2):
+    
+    Returns the ground distance in metres between two LocationGlobal objects.
+
+    This method is an approximation, and will not be accurate over large distances and close to the 
+    earth's poles. It comes from the ArduPilot test code: 
+    https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
+    
+    dlat = aLocation2.lat - aLocation1.lat
+    dlong = aLocation2.lon - aLocation1.lon
+    return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
+"""
