@@ -4,9 +4,6 @@
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
-      <change beforePath="$PROJECT_DIR$/mav.parm" afterPath="$PROJECT_DIR$/mav.parm" />
-      <change beforePath="$PROJECT_DIR$/mav.tlog" afterPath="$PROJECT_DIR$/mav.tlog" />
-      <change beforePath="$PROJECT_DIR$/mav.tlog.raw" afterPath="$PROJECT_DIR$/mav.tlog.raw" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -20,8 +17,8 @@
       <file leaf-file-name="drone_control.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/drone_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="267">
-              <caret line="395" column="115" lean-forward="false" selection-start-line="395" selection-start-column="115" selection-end-line="395" selection-end-column="115" />
+            <state relative-caret-position="165">
+              <caret line="496" column="25" lean-forward="true" selection-start-line="496" selection-start-column="25" selection-end-line="496" selection-end-column="25" />
               <folding>
                 <element signature="e#26#43#0" expanded="true" />
               </folding>
@@ -93,6 +90,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
@@ -103,18 +101,12 @@
             </path>
             <path>
               <item name="Rescue-Drone" type="b2602c69:ProjectViewProjectNode" />
-              <item name="Rescue-Drone" type="462c0819:PsiDirectoryNode" />
-              <item name="media" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="Rescue-Drone" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
             </path>
           </expand>
           <select />
         </subPane>
       </pane>
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -214,7 +206,14 @@
       <option name="project" value="LOCAL" />
       <updated>1522159503804</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="add indication parameter to indication frame">
+      <created>1523050886067</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1523050886067</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TodoView">
@@ -276,7 +275,8 @@
     <MESSAGE value="fix disconnected from sitl/drone by thread,now is not got stuck" />
     <MESSAGE value="start create message box" />
     <MESSAGE value="add msg box dynamic when person detected" />
-    <option name="LAST_COMMIT_MESSAGE" value="add msg box dynamic when person detected" />
+    <MESSAGE value="add indication parameter to indication frame" />
+    <option name="LAST_COMMIT_MESSAGE" value="add indication parameter to indication frame" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -287,6 +287,16 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/drone_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#26#43#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/drone_control.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -411,8 +421,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/drone_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="267">
-          <caret line="395" column="115" lean-forward="false" selection-start-line="395" selection-start-column="115" selection-end-line="395" selection-end-column="115" />
+        <state relative-caret-position="165">
+          <caret line="496" column="25" lean-forward="true" selection-start-line="496" selection-start-column="25" selection-end-line="496" selection-end-column="25" />
           <folding>
             <element signature="e#26#43#0" expanded="true" />
           </folding>
