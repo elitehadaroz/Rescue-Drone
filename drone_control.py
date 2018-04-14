@@ -7,6 +7,7 @@ import struct
 import subprocess
 import threading
 import time
+from pymavlink import mavutil, mavwp
 from Tkinter import *
 import ttk
 from mttkinter import mtTkinter
@@ -138,14 +139,20 @@ class DroneControl:
             self.gui.show_msg_monitor(">> Drone is disconnected", "msg")
 
     def auto_mode(self):
-        #cmd = self.vehicle.commands
-        #cmd.wait_valid()
+
         self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
         self.arm_and_takeoff(20)
         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
         self.vehicle.mode = VehicleMode("AUTO")
         print"after switch auto mode in drone"
-        print(cmd.count)
+        print(self.vehicle.commands)
+        t = threading.Thread(name="lll",target=self.bbb)
+        t.start()
+
+    def bbb(self):
+        while True:
+            time.sleep(1)
+            print(self.vehicle.mode.name)
 
 
     def arm_and_takeoff(self, target_altitude):  # Arms vehicle and fly to target_altitude.
@@ -277,7 +284,7 @@ class DroneControl:
         if not self.person_is_detect:
             if self.vehicle.mode.name == 'AUTO':
                 self.person_is_detect = True
-                self.gui.show_msg_user("person detection")
+                #self.gui.show_msg_user("person detection")
 
     def info_drone(self):
         info = {'alt': self.vehicle.location.global_relative_frame.alt,
@@ -431,41 +438,39 @@ class Gui:
         self.button_rtl.config(state=NORMAL)
 
     def switch_on_off(self, master, key):
-        if self.drone_vehicle.is_armed is False:
-            if key == 'drone':
-                if self.sitl_is_connect is False:
-                    if self.drone_is_connect is False:
-                        self.button_connect.config(text="Disconnect")
-                        self.button_connect_sitl.config(state=DISABLED)
-                        self.drone_is_connect = True
-                        self.drone_connect(key, master)
-                    else:
-                        self.button_connect.config(text="Connect")
-                        self.button_connect_sitl.config(state=NORMAL)
-                        self.drone_is_connect = False
-                        disconnect_thread = threading.Thread(name='disconnect from drone',
-                                                             target=lambda: self.disconnect(key, master))
-                        disconnect_thread.start()
-                else:
-                    print("please disconnect from the SITL , and try again")
-            else:
+        if key == 'drone':
+            if self.sitl_is_connect is False:
                 if self.drone_is_connect is False:
-                    if self.sitl_is_connect is False:
-                        self.button_connect_sitl.config(text="Disconnect\nSITL")
-                        self.button_connect.config(state=DISABLED)
-                        self.sitl_is_connect = True
-                        self.drone_connect(key, master)
-                    else:
-                        self.button_connect_sitl.config(text="ConnectSITL")
-                        self.button_connect.config(state=NORMAL)
-                        self.sitl_is_connect = False
-                        print(key)
-                        disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
-                        disconnect_thread.start()
+                    self.button_connect.config(text="Disconnect")
+                    self.button_connect_sitl.config(state=DISABLED)
+                    self.drone_is_connect = True
+                    self.drone_connect(key, master)
                 else:
-                    print("please disconnect from the drone , and try again")
+                    self.button_connect.config(text="Connect")
+                    self.button_connect_sitl.config(state=NORMAL)
+                    self.drone_is_connect = False
+                    disconnect_thread = threading.Thread(name='disconnect from drone',
+                                                             target=lambda: self.disconnect(key, master))
+                    disconnect_thread.start()
+            else:
+                print("please disconnect from the SITL , and try again")
         else:
-            self.show_msg_monitor(">> Please land and try again!", 'msg')
+            if self.drone_is_connect is False:
+                if self.sitl_is_connect is False:
+                    self.button_connect_sitl.config(text="Disconnect\nSITL")
+                    self.button_connect.config(state=DISABLED)
+                    self.sitl_is_connect = True
+                    self.drone_connect(key, master)
+                else:
+                    self.button_connect_sitl.config(text="ConnectSITL")
+                    self.button_connect.config(state=NORMAL)
+                    self.sitl_is_connect = False
+                    print(key)
+                    disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
+                    disconnect_thread.start()
+            else:
+                print("please disconnect from the drone , and try again")
+
     def drone_connect(self, key, master):  # connect to the system
         if key == 'drone':
             # this apply the mavProxy and after mavProxy succeeded,the mavProxy connecting the drone to the system in drone_control
@@ -499,22 +504,21 @@ class Gui:
         self.socket_video.close()
 
     def on_closing(self,master):
-        if self.drone_vehicle.is_armed is False:
             #if self.drone_vehicle.drone_connected is True:
-            if self.drone_is_connect is True :
-                print("close drone")
-                self.switch_on_off(master,'drone')
-                root.destroy()
-            elif self.sitl_is_connect is True:
-                print("close sitl")
-                self.switch_on_off(master,'sitl')
-                root.destroy()
-            else:
-                print("im hereeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee")
-                root.destroy()
-                return
+        if self.drone_is_connect is True :
+            print("close drone")
+            self.switch_on_off(master,'drone')
+            time.sleep(3)
+            root.destroy()
+        elif self.sitl_is_connect is True:
+            print("close sitl")
+            self.switch_on_off(master,'sitl')
+            time.sleep(3)
+            root.destroy()
         else:
-            print("please disconnect from the drone , and try again")
+            root.destroy()
+            return
+
     def cam_drone(self, master,key):  # master??
 
         self.detection_obj = PersonDetection(self.drone_vehicle, self)
