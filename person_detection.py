@@ -168,7 +168,7 @@ if __name__ == "__main__":
   #vid.start()
   #drone =  "cd C:\Python27 python drone_control.py"  # launch the person_detection script using bash
   #droneProcess = subprocess.Popen(drone,shell=False, stdout=subprocess.PIPE)
-  print("after 10")
+
   #s =threading.Thread(name='vid',target=read)
   #s.start()
   #window.mainloop()
