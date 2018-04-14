@@ -16,7 +16,7 @@ from multiprocessing import Process
 import tkMessageBox
 import cv2
 from PIL import Image, ImageTk
-from dronekit import connect, VehicleMode, APIException  # Import DroneKit-Python
+from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 from winsound import *
 
 
@@ -139,22 +139,64 @@ class DroneControl:
             self.gui.show_msg_monitor(">> Drone is disconnected", "msg")
 
     def auto_mode(self):
+        while not self.vehicle.home_location:
+            cmds = self.vehicle.commands
+            cmds.download()
+            cmds.wait_ready()
+            if not self.vehicle.home_location:
+                print " Waiting for home location ..."
+        cmds = self.vehicle.commands
+        cmds.download()
+        cmds.wait_ready()
+        print(self.vehicle.home_location)
+        home = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                    mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0,self.vehicle.home_location.lat, self.vehicle.home_location.lon, 30)
+        print("after")
+        missionlist = []
+        for cmd in cmds:
+            missionlist.append(cmd)
+        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0)
+        guided = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                      mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+                       3, 0, 0, 0, 0, 0, 0, 0)
 
+        missionlist.append(home)
+        missionlist.append(rtl)
+        missionlist.append(guided)
+
+        cmds.clear()
+        for cmd in missionlist:
+            cmds.add(cmd)
+        cmds.upload()
         self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
         self.arm_and_takeoff(20)
+        print("home location is",self.vehicle.home_location)
         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
         self.vehicle.mode = VehicleMode("AUTO")
         print"after switch auto mode in drone"
-        print(self.vehicle.commands)
-        t = threading.Thread(name="lll",target=self.bbb)
-        t.start()
+        print(cmds.count)
+        #while self.vehicle.armed is True:
+            #time.sleep(1)
+        #self.vehicle.mode = VehicleMode("GUIDED")
+        #t=threading.Thread(name="drone in mission",target=self.drone_in_air)
+        #t.start()
 
-    def bbb(self):
-        while True:
-            time.sleep(1)
-            print(self.vehicle.mode.name)
+    #def drone_in_air(self):
 
 
+    def set_home(self,aLocation, aCurrent=1):
+        msg = self.vehicle.message_factory.command_long_encode(
+            0, 0,  # target system, target component
+            mavutil.mavlink.MAV_CMD_DO_SET_HOME,  # command
+            0,  # confirmation
+            aCurrent,  # param 1: 1 to use current position, 2 to use the entered values.
+            0, 0, 0,  # params 2-4
+            aLocation.lat,
+            aLocation.lon,
+            aLocation.alt
+        )
+        return msg
     def arm_and_takeoff(self, target_altitude):  # Arms vehicle and fly to target_altitude.
         #self.gui.show_msg_monitor(">> Drone takeoff to " + target_altitude + "meter altitude...", "msg")
         if self.vehicle.armed is False:
@@ -170,11 +212,12 @@ class DroneControl:
             self.vehicle.armed = True
 
             # Confirm vehicle armed before attempting to take off
+            self.gui.show_msg_monitor(">> Waiting for arming...", "msg")
             while not self.vehicle.armed:
-                self.gui.show_msg_monitor(">> Waiting for arming...", "msg")
                 time.sleep(1)
+            self.gui.show_msg_monitor(">> ARMING MOTORS", "success")
             self.is_armed = True
-            print("Taking off!")
+            self.gui.show_msg_monitor(">> take off...", "msg")
             self.vehicle.simple_takeoff(target_altitude)  # Take off to target altitude
 
             # Wait until the vehicle reaches a safe height before processing the goto
@@ -432,10 +475,16 @@ class Gui:
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
         print("gui auto mode end")
-    def allow_button(self):
-        self.button_auto.config(state=NORMAL)
-        self.button_manual.config(state=NORMAL)
-        self.button_rtl.config(state=NORMAL)
+
+    def allow_deny_button(self,key):
+        if key == 'allow':
+            self.button_auto.config(state=NORMAL)
+            self.button_manual.config(state=NORMAL)
+            self.button_rtl.config(state=NORMAL)
+        elif key == 'deny':
+            self.button_auto.config(state=DISABLED)
+            self.button_manual.config(state=DISABLED)
+            self.button_rtl.config(state=DISABLED)
 
     def switch_on_off(self, master, key):
         if key == 'drone':
@@ -449,6 +498,7 @@ class Gui:
                     self.button_connect.config(text="Connect")
                     self.button_connect_sitl.config(state=NORMAL)
                     self.drone_is_connect = False
+                    self.allow_deny_button('deny')
                     disconnect_thread = threading.Thread(name='disconnect from drone',
                                                              target=lambda: self.disconnect(key, master))
                     disconnect_thread.start()
@@ -465,7 +515,7 @@ class Gui:
                     self.button_connect_sitl.config(text="ConnectSITL")
                     self.button_connect.config(state=NORMAL)
                     self.sitl_is_connect = False
-                    print(key)
+                    self.allow_deny_button('deny')
                     disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
                     disconnect_thread.start()
             else:
@@ -482,7 +532,7 @@ class Gui:
 
         person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
         person_detection_video.start()
-        self.allow_button()
+        self.allow_deny_button('allow')
 
     def disconnect(self, key, master):  # disconnect from button
         if key == 'drone':
@@ -537,9 +587,9 @@ class Gui:
         except socket.error, exc:
             print("error,problem video connect: %s" % exc)
             if self.drone_is_connect:
-                self.disconnect('drone', master)
+                self.switch_on_off(master, 'drone')
             elif self.sitl_is_connect:
-                self.disconnect('sitl', master)
+                self.switch_on_off(master, 'sitl')
             sys.exit(1)
 
         data = ""
