@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/vehicle.py" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
       <change beforePath="$PROJECT_DIR$/mav.tlog" afterPath="$PROJECT_DIR$/mav.tlog" />
@@ -20,8 +20,8 @@
       <file leaf-file-name="drone_control.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/drone_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="286">
-              <caret line="175" column="46" lean-forward="true" selection-start-line="175" selection-start-column="46" selection-end-line="175" selection-end-column="46" />
+            <state relative-caret-position="255">
+              <caret line="592" column="0" lean-forward="true" selection-start-line="592" selection-start-column="0" selection-end-line="592" selection-end-column="0" />
               <folding>
                 <element signature="e#26#43#0" expanded="true" />
               </folding>
@@ -29,7 +29,26 @@
           </provider>
         </entry>
       </file>
+      <file leaf-file-name="vehicle.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/vehicle.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="131">
+              <caret line="269" column="0" lean-forward="false" selection-start-line="269" selection-start-column="0" selection-end-line="269" selection-end-column="0" />
+              <folding>
+                <element signature="e#0#16#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
     </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
@@ -53,6 +72,7 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/person_detection.py" />
+        <option value="$PROJECT_DIR$/vehicle.py" />
         <option value="$PROJECT_DIR$/drone_control.py" />
       </list>
     </option>
@@ -258,7 +278,14 @@
       <option name="project" value="LOCAL" />
       <updated>1523749341042</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="set auto,guided and rtl mode with the button">
+      <created>1523889887623</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1523889887623</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TodoView">
@@ -324,7 +351,8 @@
     <MESSAGE value="Start writing messages to msg box,and fix bug connecting when is not Possible at all" />
     <MESSAGE value="fix bug when the user disconnect from the rescue drone is Shuts down all process" />
     <MESSAGE value="start to send mission to drone,auto mode and rtl" />
-    <option name="LAST_COMMIT_MESSAGE" value="start to send mission to drone,auto mode and rtl" />
+    <MESSAGE value="set auto,guided and rtl mode with the button" />
+    <option name="LAST_COMMIT_MESSAGE" value="set auto,guided and rtl mode with the button" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -483,10 +511,20 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/vehicle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="131">
+          <caret line="269" column="0" lean-forward="false" selection-start-line="269" selection-start-column="0" selection-end-line="269" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/drone_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="286">
-          <caret line="175" column="46" lean-forward="true" selection-start-line="175" selection-start-column="46" selection-end-line="175" selection-end-column="46" />
+        <state relative-caret-position="255">
+          <caret line="592" column="0" lean-forward="true" selection-start-line="592" selection-start-column="0" selection-end-line="592" selection-end-column="0" />
           <folding>
             <element signature="e#26#43#0" expanded="true" />
           </folding>

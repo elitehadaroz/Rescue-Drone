@@ -7,6 +7,7 @@ import struct
 import subprocess
 import threading
 import time
+import vehicle
 from pymavlink import mavutil, mavwp
 from Tkinter import *
 import ttk
@@ -69,7 +70,7 @@ class PersonDetection:
 
 ###############################################################################################################################
 ################################################ Drone Control ################################################################
-
+"""
 class DroneControl:
     def __init__(self, gui_obj):
         self.mavlink_connected = False
@@ -329,15 +330,16 @@ class DroneControl:
         self.drone_connected=True
         self.gui.show_msg_monitor(">> Drone is connecting", "success")
         print"the drone is connected"
-        """
-        while True:
-            #print(vehicle.location.capabilities)
-            #print("the latiiiiiii is:%s"% LocationGlobal)
-            #print("theiiiiiiiii lon is:%s"% vehicle.location.global_frame.lon)
+"""
+"""
+        while True: 
+            print(vehicle.location.capabilities)
+            print("the latiiiiiii is:%s"% LocationGlobal)
+            print("theiiiiiiiii lon is:%s"% vehicle.location.global_frame.lon)
             print("the lat is:%s"% vehicle.location.global_frame.lat)
             print("the lon is:%s"% vehicle.location.global_frame.lon)
             time.sleep(4)
-        """
+        
 
     def connecting_sitl(self):
         self.cam_connect = True
@@ -390,6 +392,7 @@ class DroneControl:
                 'dist': self.vehicle.rangefinder.distance,
                 'bat': self.vehicle.battery }
         return info
+"""
 ###############################################################################################################################
 ##################################################### Gui #####################################################################
 ###############################################################################################################################
@@ -402,7 +405,7 @@ class Gui:
         self.socket_video=None  #the socket_video assigned to receive video from person_detection file.
         self.message_box_pop = False
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
-        self.drone_vehicle = DroneControl(self)
+        self.drone_vehicle = vehicle.DroneControl(self)
         self.drone_control = None
         self.video_window = None
         self.monitor_msg = None
@@ -588,6 +591,8 @@ class Gui:
             connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl())
             connecting_sitl_thread.start()
 
+        get_info_drone = threading.Thread(name='send info',target=self.infupdate_parm_droneo_drone)
+        get_info_drone.start()
         person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
         person_detection_video.start()
         self.allow_deny_button('allow')
@@ -732,13 +737,15 @@ class Gui:
         button_no.grid(row=1, column=3)
 
     def update_parm_drone(self):
-
+        while not self.drone_vehicle.drone_connected:
+            time.sleep(1)
         while self.drone_vehicle.drone_connected:
             info =self.drone_vehicle.info_drone()
             self.altitude_info.config(text=info['alt'])
             self.bat_volt_info.config(text=info['ground_speed'])
             self.dist_to_home_info.config(text=info['dist'])
             self.ground_speed_info.config(text=info['bat'])
+
     #@staticmethod
 
     """the function call from show_msg_user when detection a person."""
