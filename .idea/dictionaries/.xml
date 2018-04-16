@@ -2,6 +2,8 @@
   <dictionary name="בן">
     <words>
       <w>addr</w>
+      <w>nextwaypoint</w>
+      <w>waypoint</w>
     </words>
   </dictionary>
 </component>

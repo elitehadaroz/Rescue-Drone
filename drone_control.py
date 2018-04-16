@@ -19,7 +19,19 @@ from PIL import Image, ImageTk
 from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 from winsound import *
 
+"""
+             guided = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                               mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
+                                3, 0, 0, 0, 0, 0, 0, 0)
+             land =  Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_LAND, 0, 1, 0, 0, 0, 0, 0, 0, 0)
+             disarmed = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_MODE_GUIDED_DISARMED,
+                            0, 1, 0, 0, 0, 0, 0, 0, 0)
 
+
+             #missionlist.append(guided)
+             #missionlist.append(land)
+             #missionlist.append(disarmed)
+"""
 ############################################# person detection ##############################################################
 class PersonDetection:
     def __init__(self, drone_vehicle_obj,gui_obj):
@@ -71,6 +83,8 @@ class DroneControl:
         self.person_is_detect = False
         self.cam_connect = False
         self.is_armed = False
+        self.command_mission = None
+        self.auto_mode_activated = False
 
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
@@ -127,6 +141,7 @@ class DroneControl:
             time.sleep(1)
 
     def drone_disconnect(self):
+        self.vehicle.close()
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
         self.mavlink_time_out = True  # reset the timer to connection
         # gui.drone_is_connect=False                    #to reset the option to connect again
@@ -138,54 +153,93 @@ class DroneControl:
             subprocess.Popen('taskkill /F /T /PID %i' % pid, shell=True)
             self.gui.show_msg_monitor(">> Drone is disconnected", "msg")
 
-    def auto_mode(self):
-        while not self.vehicle.home_location:
-            cmds = self.vehicle.commands
-            cmds.download()
-            cmds.wait_ready()
-            if not self.vehicle.home_location:
-                print " Waiting for home location ..."
-        cmds = self.vehicle.commands
-        cmds.download()
-        cmds.wait_ready()
-        print(self.vehicle.home_location)
-        home = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-                    mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0,self.vehicle.home_location.lat, self.vehicle.home_location.lon, 30)
-        print("after")
+    def read_mission(self):     # after the user insert track on mission planner,this function read the track and save is on command_mission
+        if self.command_mission is None :
+            self.command_mission = self.vehicle.commands
+            self.command_mission.download()
+            self.command_mission.wait_ready()
+            while not self.vehicle.home_location:
+                self.command_mission = self.vehicle.commands
+                self.command_mission.download()
+                self.command_mission.wait_ready()
+                print(self.command_mission.count)
+                if not self.vehicle.home_location:
+                    self.gui.show_msg_monitor(">> Waiting for home location ...", "msg")
+            if self.command_mission is not None:
+                if self.command_mission.count == 0:
+                    self.command_mission = None
+
+    def manual_mode(self):      #set GUIDED mode,the drone now in GUIDED mode
+        self.vehicle.mode = VehicleMode("GUIDED")
+
+    def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
+        self.vehicle.mode = VehicleMode("RTL")
+
+    def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
+        if self.drone_connected is True:
+            if self.vehicle.mode.name is not 'AUTO':
+                if not self.auto_mode_activated:
+                    if self.command_mission is None:
+                        self.read_mission()
+                    if self.command_mission is not None and self.vehicle.home_location:
+                        self.auto_mode_activated = True
+                        self.setting_waypoint_mission() #setting the waypoint according to user request
+                        self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
+                        self.arm_and_takeoff(20) #start takeoff
+
+                        self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
+                        self.vehicle.mode = VehicleMode("AUTO")
+                        self.read_waypoint_live()
+                        # Disarm vehicle
+                        self.vehicle.armed = False
+                        time.sleep(1)
+                        self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
+                    else:
+                        self.gui.show_msg_monitor(">> Please enter mission", "msg")
+                else:
+                    self.vehicle.mode = VehicleMode("AUTO")
+                    self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
+            else:
+                self.gui.show_msg_monitor(">> Auto mode already on", "msg")
+        else:
+            self.gui.show_msg_monitor(">> Please wait until the drone will connect", "msg")
+
+    def setting_waypoint_mission(self):     #the function read all the waypoint and edit values, and insert rtl mode to end of mission
+
+        # home = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+        # mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0,self.vehicle.home_location.lat, self.vehicle.home_location.lon, 30)
+
         missionlist = []
-        for cmd in cmds:
+        for cmd in self.command_mission:
             missionlist.append(cmd)
-        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT, mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
-                       0, 0, 0, 0, 0, 0, 0, 0)
-        guided = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-                      mavutil.mavlink.MAV_CMD_DO_SET_MODE, 0,
-                       3, 0, 0, 0, 0, 0, 0, 0)
+        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
+                      0, 0, 0, 0, 0, 0, 0, 0)
 
-        missionlist.append(home)
-        missionlist.append(rtl)
-        missionlist.append(guided)
+        missionlist.append(rtl)  # add new mission,rtl to end of missions
+        self.command_mission.clear()
 
-        cmds.clear()
         for cmd in missionlist:
-            cmds.add(cmd)
-        cmds.upload()
-        self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
-        self.arm_and_takeoff(20)
-        print("home location is",self.vehicle.home_location)
-        self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
-        self.vehicle.mode = VehicleMode("AUTO")
-        print"after switch auto mode in drone"
-        print(cmds.count)
-        #while self.vehicle.armed is True:
-            #time.sleep(1)
-        #self.vehicle.mode = VehicleMode("GUIDED")
-        #t=threading.Thread(name="drone in mission",target=self.drone_in_air)
-        #t.start()
+            self.command_mission.add(cmd)
+        self.command_mission.upload()
 
-    #def drone_in_air(self):
+    def read_waypoint_live(self):
 
+        nextwaypoint = self.vehicle.commands.next
+        while nextwaypoint < len(self.vehicle.commands):
+            print("in while")
+            if self.vehicle.commands.next > nextwaypoint:
+                print("in if")
+                display_seq = self.vehicle.commands.next
+                point_num = "Moving to waypoint %s" % display_seq
+                self.gui.show_msg_monitor(">>" + point_num , "msg")
+                nextwaypoint = self.vehicle.commands.next
+            time.sleep(1)
 
-    def set_home(self,aLocation, aCurrent=1):
+        # wait for the vehicle to land
+        while self.command_mission.next > 0:
+            time.sleep(1)
+
+    def home_location(self,aLocation, aCurrent=1):
         msg = self.vehicle.message_factory.command_long_encode(
             0, 0,  # target system, target component
             mavutil.mavlink.MAV_CMD_DO_SET_HOME,  # command
@@ -197,16 +251,17 @@ class DroneControl:
             aLocation.alt
         )
         return msg
+
     def arm_and_takeoff(self, target_altitude):  # Arms vehicle and fly to target_altitude.
         #self.gui.show_msg_monitor(">> Drone takeoff to " + target_altitude + "meter altitude...", "msg")
         if self.vehicle.armed is False:
-            print("Basic pre-arm checks")
+            self.gui.show_msg_monitor(">> Pre-arm checks", "msg")
             # Don't try to arm until autopilot is ready
             while not self.vehicle.is_armable:
                 self.gui.show_msg_monitor(">> Waiting for vehicle to initialise...", "msg")
                 time.sleep(1)
 
-            print("Arming motors")
+
             # Copter should arm in GUIDED mode
             self.vehicle.mode = VehicleMode("GUIDED")
             self.vehicle.armed = True
@@ -231,8 +286,7 @@ class DroneControl:
                     break
                 time.sleep(1)
         else:
-            self.gui.show_msg_monitor(">> the copter is armed", "msg")
-            #print("the copter is armed")
+            self.gui.show_msg_monitor(">> the drone is armed", "msg")
 
     def connecting_drone(self):
         self.gui.show_msg_monitor(">> drone connecting...", "msg")
@@ -273,6 +327,7 @@ class DroneControl:
         # Close vehicle object before exiting script
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected=True
+        self.gui.show_msg_monitor(">> Drone is connecting", "success")
         print"the drone is connected"
         """
         while True:
@@ -294,7 +349,7 @@ class DroneControl:
 
     def connection_mavproxy_sitl(self):
         time.sleep(4)
-        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:10.1.49.130:14550 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
+        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
         self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
         print("self.dronekit_process", self.mavProxy_sitl_proc.pid)
         print("im in mavproxy sitl connection")
@@ -412,11 +467,11 @@ class Gui:
         self.button_auto.grid(row=1, column=0, columnspan=1, sticky=W + N, padx=4, pady=4)
 
         """button MANUAL mode"""
-        self.button_manual = Button(self.drone_control, state=DISABLED, text="Manual", width=9, height=3)
+        self.button_manual = Button(self.drone_control, state=DISABLED, text="Manual", width=9, height=3, command=self.send_manual_mode)
         self.button_manual.grid(row=1, column=1, columnspan=1, sticky=W + N, pady=4)
 
         """button RTL mode"""
-        self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3)
+        self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3, command=self.send_rtl_mode)
         self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
 
     def create_monitor_msg(self,master):
@@ -475,7 +530,10 @@ class Gui:
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
         print("gui auto mode end")
-
+    def send_manual_mode(self):
+        self.drone_vehicle.manual_mode()
+    def send_rtl_mode(self):
+        self.drone_vehicle.rtl_mode()
     def allow_deny_button(self,key):
         if key == 'allow':
             self.button_auto.config(state=NORMAL)
