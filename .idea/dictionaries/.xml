@@ -2,6 +2,8 @@
   <dictionary name="בן">
     <words>
       <w>addr</w>
+      <w>dlat</w>
+      <w>dlong</w>
       <w>nextwaypoint</w>
       <w>waypoint</w>
     </words>

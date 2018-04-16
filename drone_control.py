@@ -547,6 +547,7 @@ class Gui:
             self.button_manual.config(state=DISABLED)
             self.button_rtl.config(state=DISABLED)
 
+
     def switch_on_off(self, master, key):
         if key == 'drone':
             if self.sitl_is_connect is False:
@@ -591,10 +592,10 @@ class Gui:
             connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl())
             connecting_sitl_thread.start()
 
-        get_info_drone = threading.Thread(name='send info',target=self.infupdate_parm_droneo_drone)
+        get_info_drone = threading.Thread(name='send info',target=self.update_parm_drone)
         get_info_drone.start()
-        person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
-        person_detection_video.start()
+        #person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
+        #person_detection_video.start()
         self.allow_deny_button('allow')
 
     def disconnect(self, key, master):  # disconnect from button
@@ -611,10 +612,19 @@ class Gui:
             self.message_box_pop = False  #reset the bool message box.
         print("close camera")
         self.detection_obj.close_detection()
+        self.clear_label(master)    #clear all value from labels and frame
+        self.socket_video.close()
+
+    """clear_label call from disconnect function,the function clear all value from frames and labels"""
+    def clear_label(self,master):
+
         self.video_window.destroy()
         self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
         self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
-        self.socket_video.close()
+        self.altitude_info.config(text="0.00")
+        self.bat_volt_info.config(text="0.00")
+        self.dist_to_home_info.config(text="0.00")
+        self.ground_speed_info.config(text="0.00")
 
     def on_closing(self,master):
             #if self.drone_vehicle.drone_connected is True:
@@ -740,11 +750,11 @@ class Gui:
         while not self.drone_vehicle.drone_connected:
             time.sleep(1)
         while self.drone_vehicle.drone_connected:
-            info =self.drone_vehicle.info_drone()
-            self.altitude_info.config(text=info['alt'])
-            self.bat_volt_info.config(text=info['ground_speed'])
-            self.dist_to_home_info.config(text=info['dist'])
-            self.ground_speed_info.config(text=info['bat'])
+            parm = self.drone_vehicle.get_info_drone()
+            self.altitude_info.config(text=parm['alt'])
+            self.bat_volt_info.config(text="%.2f" % parm['bat'])
+            self.dist_to_home_info.config(text="%.2f" % parm['dist_home'])
+            self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])
 
     #@staticmethod
 

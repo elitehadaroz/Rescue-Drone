@@ -6,6 +6,7 @@ import time
 from pymavlink import mavutil, mavwp
 from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 import exceptions
+import math
 
 class DroneControl:
     def __init__(self, gui_obj):
@@ -22,7 +23,7 @@ class DroneControl:
         self.is_armed = False
         self.command_mission = None
         self.auto_mode_activated = False
-        self.bb ="hello"
+        self.__home_loc = None
 
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
@@ -127,13 +128,16 @@ class DroneControl:
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
                         self.vehicle.mode = VehicleMode("AUTO")
-                        self.read_waypoint_live()
+                        while self.vehicle.armed:
+                            time.sleep(1)
                         # Disarm vehicle
                         self.vehicle.armed = False
-                        time.sleep(1)
-                        self.vehicle.mode = VehicleMode("GUIDED")
+                        #while self.vehicle.armed:
+                        #    time.sleep(1)
+                        print("heloooooooooooooooooooooooooooooooooooooooooooooooooooo")
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
+                        self.manual_mode()
                     else:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
                 else:
@@ -146,16 +150,23 @@ class DroneControl:
 
     def setting_waypoint_mission(self):     #the function read all the waypoint and edit values, and insert rtl mode to end of mission
 
-        # home = Command(0,0,0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-        # mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0,self.vehicle.home_location.lat, self.vehicle.home_location.lon, 30)
+
 
         missionlist = []
         for cmd in self.command_mission:
             missionlist.append(cmd)
-        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
+
+
+        home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                       mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.vehicle.home_location.lat,
+                       self.vehicle.home_location.lon, 20)
+
+        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+                      mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
                       0, 0, 0, 0, 0, 0, 0, 0)
 
-        missionlist.append(rtl)  # add new mission,rtl to end of missions
+        missionlist.append(home)  # add new mission,rtl to end of missions
+        missionlist.append(rtl)
         self.command_mission.clear()
 
         for cmd in missionlist:
@@ -166,18 +177,20 @@ class DroneControl:
 
         nextwaypoint = self.vehicle.commands.next
         while nextwaypoint < len(self.vehicle.commands):
-            print("in while")
             if self.vehicle.commands.next > nextwaypoint:
                 print("in if")
                 display_seq = self.vehicle.commands.next
                 point_num = "Moving to waypoint %s" % display_seq
-                self.gui.show_msg_monitor(">>" + point_num , "msg")
+                self.gui.show_msg_monitor(">> " + point_num , "msg")
                 nextwaypoint = self.vehicle.commands.next
             time.sleep(1)
+        print("im exit frommmmmmmmmm read waypoint")
+
 
         # wait for the vehicle to land
         while self.command_mission.next > 0:
             time.sleep(1)
+        return True
 
     def home_location(self,aLocation, aCurrent=1):
         msg = self.vehicle.message_factory.command_long_encode(
@@ -219,7 +232,6 @@ class DroneControl:
             #  (otherwise the command after self.vehicle.simple_takeoff will execute
             #   immediately).
             while True:
-                print(" Altitude: ", self.vehicle.location.global_relative_frame.alt)
                 # Break and return from function just below target altitude.
                 if self.vehicle.location.global_relative_frame.alt >= target_altitude * 0.95:
                     self.gui.show_msg_monitor(">> Reached target altitude", "success")
@@ -237,7 +249,7 @@ class DroneControl:
             self.vehicle = connect("127.0.0.1:14551", wait_ready=False, baud=57600)
             # wait_ready is for that all info from drone upload 100%
             self.vehicle.wait_ready(True, timeout=60)
-            # print("the vehicle is ready")
+            self.vehicle.heartbeat_timeout(1000)
         # Bad TCP connection
         except socket.error:
             print 'No server exists!'
@@ -267,7 +279,7 @@ class DroneControl:
         # Close vehicle object before exiting script
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected=True
-
+        self.__home_loc = {'lat':self.vehicle.location.global_relative_frame.lat,'lon':self.vehicle.location.global_relative_frame.lon}
         self.gui.show_msg_monitor(">> Drone is connecting", "success")
         print"the drone is connected"
         """
@@ -326,9 +338,16 @@ class DroneControl:
                 #self.gui.show_msg_user("person detection")
 
     def get_info_drone(self):
+         dist_to_home = self.get_distance_metres(self.__home_loc,self.vehicle.location.global_relative_frame)
          info = {'alt': self.vehicle.location.global_relative_frame.alt,
                 'ground_speed':self.vehicle.groundspeed,
-                'dist': self.vehicle.rangefinder.distance,
-                'bat': self.vehicle.battery }
-         print("cheack this info")
+                'dist_home': dist_to_home,
+                'bat': self.vehicle.battery.voltage  }
          return info
+
+    def get_distance_metres(self, location1, location2):
+        #print(location1)
+        #print(location2)
+        dlat = location2.lat - location1['lat']
+        dlong = location2.lon - location1['lon']
+        return math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
