@@ -98,13 +98,17 @@ class DroneControl:
             self.command_mission = self.vehicle.commands
             self.command_mission.download()
             self.command_mission.wait_ready()
+            if self.command_mission.count !=0:
+                self.gui.show_msg_monitor(">> Waiting for home location ...", "msg")
             while not self.vehicle.home_location:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
                 self.command_mission.wait_ready()
                 print(self.command_mission.count)
                 if not self.vehicle.home_location:
-                    self.gui.show_msg_monitor(">> Waiting for home location ...", "msg")
+                    time.sleep(1)
+            if self.vehicle.home_location and self.command_mission.count != 0:
+                self.gui.show_msg_monitor(">> Home location saved ", "success")
             if self.command_mission is not None:
                 if self.command_mission.count == 0:
                     self.command_mission = None
@@ -125,30 +129,38 @@ class DroneControl:
                 if not self.auto_mode_activated:
                     if self.command_mission is None:
                         self.read_mission()
-                    if self.command_mission is not None and self.vehicle.home_location:
+                    if self.command_mission is not None:
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
                         #self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
                         self.arm_and_takeoff(20) #start takeoff
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
-                        self.vehicle.parameters['WPNAV_SPEED'] = 250
+                        self.vehicle.parameters['WPNAV_SPEED'] = 200
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.read_waypoint_live()
+                        print("point 1")
                         while self.vehicle.armed:
                             time.sleep(1)
+                        print("point 2")
+                        self.is_armed = False
+                        print("point 3")
+                        while self.vehicle.armed:
+                            time.sleep(1)
+                            print("wait to disarmed")
                         # Disarm vehicle
-                        self.vehicle.armed = False
+
                         #while self.vehicle.armed:
                         #    time.sleep(1)
                         print("heloooooooooooooooooooooooooooooooooooooooooooooooooooo")
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
-                        self.manual_mode()
+                        self.stabilize_mode()
                     else:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
                 else:
                     self.vehicle.mode = VehicleMode("AUTO")
+                    self.gui.show_msg_monitor(">> AUTO mode activated andddddd ", "msg")
                     self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
             else:
                 self.gui.show_msg_monitor(">> Auto mode already on", "msg")
@@ -181,23 +193,25 @@ class DroneControl:
         self.command_mission.upload()
 
     def read_waypoint_live(self):
-
         nextwaypoint = self.vehicle.commands.next
         while nextwaypoint < len(self.vehicle.commands):
             if self.vehicle.commands.next > nextwaypoint:
                 print("in if")
                 display_seq = self.vehicle.commands.next
                 point_num = "Moving to waypoint %s" % display_seq
+                print(self.vehicle.system_status.state)
                 self.gui.show_msg_monitor(">> " + point_num , "msg")
                 nextwaypoint = self.vehicle.commands.next
             time.sleep(1)
+
         print("im exit frommmmmmmmmm read waypoint")
 
-
+        """
         # wait for the vehicle to land
         while self.command_mission.next > 0:
             time.sleep(1)
         return True
+        """
 
     def home_location(self,aLocation, aCurrent=1):
         msg = self.vehicle.message_factory.command_long_encode(
@@ -256,7 +270,7 @@ class DroneControl:
             self.vehicle = connect("127.0.0.1:14551", wait_ready=False, baud=57600)
             # wait_ready is for that all info from drone upload 100%
             self.vehicle.wait_ready(True, timeout=60)
-            self.vehicle.heartbeat_timeout(1000)
+           # self.vehicle.heartbeat_timeout(1000)
         # Bad TCP connection
         except socket.error:
             print 'No server exists!'
@@ -340,19 +354,21 @@ class DroneControl:
 
     def person_detected(self):
         if not self.person_is_detect:
-            if self.vehicle.mode.name == 'AUTO':
+            if self.drone_connected and self.vehicle.mode.name == 'AUTO':
                 self.gui.show_msg_monitor(">> PERSON DETECTED !!", 'person')
                 self.manual_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
-                while self.vehicle.groundspeed > 0.5: # wait the drone stop
-                    time.sleep()
+                print("after msg show")
+                while self.vehicle.groundspeed > 1: # wait the drone stop
+                    time.sleep(1)
                 self.__person_location = self.vehicle.location.global_relative_frame
 
 
     def check_alarm_operation(self):
         while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15:
             time.sleep(1)
+            print("in here")
             print(self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
         self.person_is_detect = False
         print("after destanceeeeeeeeeeee" ,self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
@@ -366,7 +382,6 @@ class DroneControl:
          return info
 
     def get_distance_metres(self, location1, location2):
-
         dlat = location2.lat - location1.lat
         dlong = location2.lon - location1.lon
         return math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5

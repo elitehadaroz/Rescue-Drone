@@ -532,7 +532,7 @@ class Gui:
     def send_auto_mode(self):
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
-        self.show_msg_monitor(">> AUTO mode activated", "msg")
+
     def send_manual_mode(self):
         self.drone_vehicle.manual_mode()
     def send_rtl_mode(self):
@@ -607,13 +607,15 @@ class Gui:
             self.drone_vehicle.sitl_disconnect()
             self.sitl_is_connect = False  # change the bool sitl to false,is mean that sitl now is not connected
 
-        if self.message_box:
+        if  self.message_box_pop:
+            self.message_box_pop = False  # reset the bool message box.
             self.message_box.destroy()    #if the message box open destroy it.
-            self.message_box_pop = False  #reset the bool message box.
+
         print("close camera")
+        self.socket_video.close()
         self.detection_obj.close_detection()
         self.clear_label(master)    #clear all value from labels and frame
-        self.socket_video.close()
+
 
     """clear_label call from disconnect function,the function clear all value from frames and labels"""
     def clear_label(self,master):
@@ -756,13 +758,15 @@ class Gui:
         if key == 'person detection':
             if answer == 'yes':
                 self.drone_vehicle.rtl_mode()
-                self.message_box.destroy()
+                #self.message_box.destroy()
             elif answer == 'no':
                 self.show_msg_monitor(">> Return to search", "msg")
                 self.drone_vehicle.auto_mode()
-                self.message_box.destroy()
+                #self.message_box.destroy()
             else:
                 print("need write a function here")
+            self.message_box.destroy()
+            self.message_box_pop =False
             check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
             check_alarm_operation_again.start()
 
