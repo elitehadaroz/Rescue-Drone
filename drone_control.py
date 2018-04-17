@@ -532,7 +532,7 @@ class Gui:
     def send_auto_mode(self):
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
-        print("gui auto mode end")
+        self.show_msg_monitor(">> AUTO mode activated", "msg")
     def send_manual_mode(self):
         self.drone_vehicle.manual_mode()
     def send_rtl_mode(self):
@@ -594,8 +594,8 @@ class Gui:
 
         get_info_drone = threading.Thread(name='send info',target=self.update_parm_drone)
         get_info_drone.start()
-        #person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
-        #person_detection_video.start()
+        person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
+        person_detection_video.start()
         self.allow_deny_button('allow')
 
     def disconnect(self, key, master):  # disconnect from button
@@ -710,11 +710,12 @@ class Gui:
             self.message_box_pop = True
 
             if key == "person detection":
-                text_message = "A person has been detected !\n do you want to continue search or send GPS location and RTL"
+                text_message = "A person has been detected !\n do you want send GPS location and RTL ,or continue search ? "
                 yes_button = "send GPS and RTL"
                 no_button = "continue to search"
-
-                self.create_message_box(text_message,yes_button,no_button)
+                middle_button ="send GPS and stay"
+                msg_detail = {'message': text_message, 'key': key, 'yes_b':yes_button, 'mid_b':middle_button, 'no_b':no_button}
+                self.create_message_box(msg_detail)
                 sound_bool = BooleanVar()
 
                 start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool))
@@ -723,10 +724,11 @@ class Gui:
                 change_color_title_msg = threading.Thread(name="change the title color msg",target=self.change_color)
                 change_color_title_msg.start()
                 """
+
                 button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
                 button_sound_on_oof.grid(row=1, column=0)
 
-    def create_message_box(self,text,yes,no):
+    def create_message_box(self,msg_detail):
         self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
                                       labelanchor=N)
         for x in xrange(5):
@@ -735,16 +737,34 @@ class Gui:
             self.message_box.grid_rowconfigure(y, weight=1)
         self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
 
-        message = Label(self.message_box, text=text,font=10)
+        message = Label(self.message_box, text=msg_detail['message'],font=10)
         message.grid(row=0, columnspan=5)
 
-        button_yes = Button(self.message_box, text=yes, width=15, height=2,
-                           command=lambda: self.user_reply_message('ok'))
+        button_yes = Button(self.message_box, text=msg_detail['yes_b'], width=15, height=2,
+                           command=lambda: self.user_reply_message('yes',msg_detail['key']))
         button_yes.grid(row=1, column=1)
 
-        button_no = Button(self.message_box, text=no, width=15, height=2,
-                           command=lambda: self.user_reply_message('no'))
+        button_no = Button(self.message_box, text=msg_detail['no_b'], width=15, height=2,
+                           command=lambda: self.user_reply_message('no',msg_detail['key']))
         button_no.grid(row=1, column=3)
+        if msg_detail['key'] == 'person detection':
+            send_gps = Button(self.message_box, text=msg_detail['mid_b'], width=15, height=2,
+                               command=lambda: self.user_reply_message('mid', msg_detail['key']))
+            send_gps.grid(row=1, column=2)
+
+    def user_reply_message(self, answer,key):   #the function get answer from the user what he wants to do after receiving the message in create_message_box
+        if key == 'person detection':
+            if answer == 'yes':
+                self.drone_vehicle.rtl_mode()
+                self.message_box.destroy()
+            elif answer == 'no':
+                self.show_msg_monitor(">> Return to search", "msg")
+                self.drone_vehicle.auto_mode()
+                self.message_box.destroy()
+            else:
+                print("need write a function here")
+            check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
+            check_alarm_operation_again.start()
 
     def update_parm_drone(self):
         while not self.drone_vehicle.drone_connected:
@@ -779,6 +799,7 @@ class Gui:
 """
 ###############################################################################################################################
 ##################################################### main ####################################################################
+
 if __name__ == "__main__":
     root = Tk()
 

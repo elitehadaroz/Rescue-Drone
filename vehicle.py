@@ -24,6 +24,7 @@ class DroneControl:
         self.command_mission = None
         self.auto_mode_activated = False
         self.__home_loc = None
+        self.__person_location = None
 
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
@@ -112,7 +113,11 @@ class DroneControl:
         self.vehicle.mode = VehicleMode("GUIDED")
 
     def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
+        self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.mode = VehicleMode("RTL")
+
+    def stabilize_mode(self):
+        self.vehicle.mode = VehicleMode("STABILIZE")
 
     def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
         if self.drone_connected is True:
@@ -123,11 +128,13 @@ class DroneControl:
                     if self.command_mission is not None and self.vehicle.home_location:
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
-                        self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
+                        #self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
                         self.arm_and_takeoff(20) #start takeoff
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
+                        self.vehicle.parameters['WPNAV_SPEED'] = 250
                         self.vehicle.mode = VehicleMode("AUTO")
+                        self.read_waypoint_live()
                         while self.vehicle.armed:
                             time.sleep(1)
                         # Disarm vehicle
@@ -279,8 +286,8 @@ class DroneControl:
         # Close vehicle object before exiting script
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected=True
-        self.__home_loc = {'lat':self.vehicle.location.global_relative_frame.lat,'lon':self.vehicle.location.global_relative_frame.lon}
-        self.gui.show_msg_monitor(">> Drone is connecting", "success")
+        self.__home_loc = self.vehicle.location.global_relative_frame
+        self.gui.show_msg_monitor(">> Drone is connected", "success")
         print"the drone is connected"
         """
         while True:
@@ -334,8 +341,21 @@ class DroneControl:
     def person_detected(self):
         if not self.person_is_detect:
             if self.vehicle.mode.name == 'AUTO':
+                self.gui.show_msg_monitor(">> PERSON DETECTED !!", 'person')
+                self.manual_mode()
                 self.person_is_detect = True
-                #self.gui.show_msg_user("person detection")
+                self.gui.show_msg_user("person detection")
+                while self.vehicle.groundspeed > 0.5: # wait the drone stop
+                    time.sleep()
+                self.__person_location = self.vehicle.location.global_relative_frame
+
+
+    def check_alarm_operation(self):
+        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15:
+            time.sleep(1)
+            print(self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
+        self.person_is_detect = False
+        print("after destanceeeeeeeeeeee" ,self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
 
     def get_info_drone(self):
          dist_to_home = self.get_distance_metres(self.__home_loc,self.vehicle.location.global_relative_frame)
@@ -346,8 +366,7 @@ class DroneControl:
          return info
 
     def get_distance_metres(self, location1, location2):
-        #print(location1)
-        #print(location2)
-        dlat = location2.lat - location1['lat']
-        dlong = location2.lon - location1['lon']
+
+        dlat = location2.lat - location1.lat
+        dlong = location2.lon - location1.lon
         return math.sqrt((dlat * dlat) + (dlong * dlong)) * 1.113195e5
