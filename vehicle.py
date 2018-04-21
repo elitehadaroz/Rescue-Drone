@@ -8,10 +8,12 @@ from dronekit import connect, VehicleMode, APIException ,Command  # Import Drone
 import exceptions
 import math
 
+
 class DroneControl:
-    def __init__(self, gui_obj):
+    def __init__(self, gui_obj,repo_obj):
         self.mavlink_connected = False
         self.gui = gui_obj
+        self.report = repo_obj
         self.mavlink_time_out = False
         self.mavlink_proc=None  #this proc start the mavProxy for real drone
         self.mavProxy_sitl_proc=None #this proc start simulator mavProxy mavlink
@@ -104,32 +106,45 @@ class DroneControl:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
                 self.command_mission.wait_ready()
+                self.report.set_num_waypoint(self.command_mission.count)
                 print(self.command_mission.count)
                 if not self.vehicle.home_location:
                     time.sleep(1)
             if self.vehicle.home_location and self.command_mission.count != 0:
                 self.gui.show_msg_monitor(">> Home location saved ", "success")
+                self.report.set_home_location(self.__home_loc)
             if self.command_mission is not None:
                 if self.command_mission.count == 0:
                     self.command_mission = None
 
     def manual_mode(self):      #set GUIDED mode,the drone now in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
+        self.gui.show_msg_monitor(">> GUIDED mode activated", "msg")
 
     def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.mode = VehicleMode("RTL")
+        self.gui.show_msg_monitor(">> RTL mode activated", "msg")
 
     def stabilize_mode(self):
         self.vehicle.mode = VehicleMode("STABILIZE")
+        self.gui.show_msg_monitor(">> STABILIZE mode activated", "msg")
 
     def send_gps_and_rtl(self):
-        #need to write function that send gps to server!!!!!!
+
+        """need to write function that send gps to server!!!!!!"""
+        self.gui.get_image = True  # get picture of person detected
+        info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
+        self.report.set_csv_on_report(info)
         self.drone_vehicle.rtl_mode()
 
     def send_gps_and_stay(self):
-        # need to write function that send gps to server!!!!!!
+
+        """need to write function that send gps to server!!!!!!"""
         self.manual_mode()
+
+    def get_person_location(self):
+        return self.__person_location
 
     def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
         if self.drone_connected is True:
@@ -384,19 +399,24 @@ class DroneControl:
                 self.stabilize_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
-                print("after msg show")
-                while self.vehicle.groundspeed > 1: # wait the drone stop
-                    time.sleep(1)
+                #print("after msg show")
                 self.__person_location = self.vehicle.location.global_relative_frame
+                self.report.set_time_detection(time.strftime("%H:%M:%S"))
+                while self.vehicle.groundspeed > 1: # wait the drone stop for more accuracy location
+                    time.sleep(1)
+                self.gui.get_image()
+                self.__person_location = self.vehicle.location.global_relative_frame
+                self.gui.get_image = True  # get picture of person detected
+
 
 
     def check_alarm_operation(self):
         while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15:
             time.sleep(1)
-            print("in here")
+            #print("in here")
             print(self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
         self.person_is_detect = False
-        print("after destanceeeeeeeeeeee" ,self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
+        #print("after destanceeeeeeeeeeee" ,self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame))
 
     def get_info_drone(self):
          dist_to_home = self.get_distance_metres(self.__home_loc,self.vehicle.location.global_relative_frame)

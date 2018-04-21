@@ -406,8 +406,9 @@ class Gui:
         self.socket_video=None  #the socket_video assigned to receive video from person_detection file.
         self.message_box_pop = False
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
-        self.drone_vehicle = vehicle.DroneControl(self)
         self.repo = report.Report()
+        self.drone_vehicle = vehicle.DroneControl(self,self.repo)
+
         self.drone_control = None
         self.video_window = None
         self.monitor_msg = None
@@ -534,6 +535,11 @@ class Gui:
         self.bat_volt_info = Label(self.info, text="0.00", font=('Arial', 20), fg="#FFD700", bg='#282828')
         self.bat_volt_info.grid(row=7, column=0, padx=10)
 
+        self.time_air = Label(self.info, text="Air time ", font=('Arial', 10), fg="white", bg='#282828')
+        self.time_air.grid(row=0, column=1, padx=10)
+        self.time_air_info = Label(self.info, text="00:00:00", font=('Arial', 20), fg="#FFD700", bg='#282828')
+        self.time_air_info.grid(row=1, column=1, padx=10)
+
     # this function send to drone move to AUTO mode
     def send_auto_mode(self):
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
@@ -652,10 +658,12 @@ class Gui:
         else:
             root.destroy()
             return
+
     def get_image_function(self):
         self.get_image = True
-    def cam_drone(self, master,key):  # master??
 
+    def cam_drone(self, master,key):  # master??
+        self.show_msg_monitor(">> Connecting to the camera...", 'msg')
         self.detection_obj = PersonDetection(self.drone_vehicle, self)
         self.socket_video = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_video.settimeout(15)
@@ -680,6 +688,7 @@ class Gui:
         data = ""
         payload_size = struct.calcsize("L")
         open_label = False
+        self.show_msg_monitor(">> The Camera is connected ", "success")
         while not self.drone_vehicle.drone_connected:
             if self.drone_vehicle.cam_connect is False:
                 self.switch_on_off(master, key)
@@ -692,7 +701,6 @@ class Gui:
             while len(data) < payload_size:
                 data += conn.recv(4096)
             if not data:
-                print("helooooo word")
                 self.socket_video.close()
             packed_msg_size = data[:payload_size]
             data = data[payload_size:]
@@ -720,6 +728,7 @@ class Gui:
             #else:   #if there was no connection to the drone, turn off the video and disconnect from all.
                 #self.switch_on_off(master,key)
                 #break
+
     def show_msg_monitor(self, msg, tag):
         self.monitor_msg.config(state='normal')
         self.monitor_msg.insert(END, msg + "\n", tag)
@@ -779,15 +788,19 @@ class Gui:
     def user_reply_message(self, answer,key):   #the function get answer from the user what he wants to do after receiving the message in create_message_box
         if key == 'person detection':
             if answer == 'yes': #send gps and rtl
+                self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and rtl,time:"+time.strftime("%H:%M:%S"))
                 self.drone_vehicle.send_gps_and_rtl()
                 #self.message_box.destroy()
 
             elif answer == 'no': #return to search
+                self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "return to search,time:"+time.strftime("%H:%M:%S"))
                 self.show_msg_monitor(">> Return to search", "msg")
                 self.drone_vehicle.auto_mode()
                 #self.message_box.destroy()
 
             else:   #send gps and stay in position
+                #self.repo.set_image()
+                self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "send gps and stay,time:"+time.strftime("%H:%M:%S"))
                 self.drone_vehicle.send_gps_and_stay()
                 print("need write a function here")
             self.message_box.destroy()
@@ -804,16 +817,52 @@ class Gui:
 
         if self.drone_vehicle.drone_connected:
             self.allow_deny_button('allow')
+        start = None
+        second = 0
+        minu = 0
+        hour = 0
+        max_alt = 0
+        max_speed = 0
+        self.repo.set_drone_connect_time(time.strftime("%H:%M:%S"))
 
         while self.drone_vehicle.drone_connected:
+            if self.drone_vehicle.is_armed:
+                if start is None:
+                    start = time.time()
+                    self.repo.set_start_mission(time.strftime("%H:%M:%S"))
+
+            if self.drone_vehicle.is_armed and start is not None:
+                second = int((time.time() - start))
+                if second == 60:
+                    minu += 1
+                    start = time.time()
+                if minu == 60:
+                    hour += 1
+                    minu = 0
+            ck = format(hour, '02') + ":" + format(minu, '02') + ":" + format(second, '02')
+
+            if self.drone_vehicle.is_armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
+                start=None
+                #self.time_air_info.config(text="00:00:00")
+                end_mission =  time.strftime("%H:%M:%S")
+                self.repo.set_end_mission(end_mission)
+                self.repo.set_air_time(ck)
+
+
             parm = self.drone_vehicle.get_info_drone()
+            if parm['alt'] > max_alt:
+                max_alt = parm['alt']
+            if parm['ground_speed'] > max_speed:
+                max_speed = parm['ground_speed']
+
             self.altitude_info.config(text=parm['alt'])
             self.bat_volt_info.config(text="%.2f" % parm['bat'])
             self.dist_to_home_info.config(text="%.2f" % parm['dist_home'])
             self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])
+            self.time_air_info.config(text=ck)
+
 
     #@staticmethod
-
     """the function call from show_msg_user when detection a person."""
     def start_alarm (self,sound_bool):    #the function call from show_msg_user and only on/off alarm when person detect
         while self.message_box_pop:

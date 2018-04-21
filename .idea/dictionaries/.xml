@@ -4,6 +4,7 @@
       <w>addr</w>
       <w>dlat</w>
       <w>dlong</w>
+      <w>minu</w>
       <w>nextwaypoint</w>
       <w>waypoint</w>
       <w>wpnav</w>
