@@ -19,7 +19,7 @@ class DroneControl:
         self.stop_timer=None    #this boolean stop_timer is count X second to login option, if is pass X second the system stop trying to connect
         self.drone_connected=False
         self.person_is_detect = False
-        self.cam_connect = False
+        self.cam_connect = True
         self.is_armed = False
         self.command_mission = None
         self.auto_mode_activated = False
@@ -29,7 +29,6 @@ class DroneControl:
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
-        self.cam_connect = True
         mav_proxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
         # droneKitSitl ='127.0.0.1:14549'
         self.mavlink_proc = subprocess.Popen(mav_proxy, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
@@ -84,6 +83,7 @@ class DroneControl:
         self.vehicle.close()
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
         self.mavlink_time_out = True  # reset the timer to connection
+        self.cam_connect = False
         # gui.drone_is_connect=False                    #to reset the option to connect again
         # gui.button_connect.config(text="Connect")   #to reset the name button to connect again
         self.drone_connected = False
@@ -123,6 +123,14 @@ class DroneControl:
     def stabilize_mode(self):
         self.vehicle.mode = VehicleMode("STABILIZE")
 
+    def send_gps_and_rtl(self):
+        #need to write function that send gps to server!!!!!!
+        self.drone_vehicle.rtl_mode()
+
+    def send_gps_and_stay(self):
+        # need to write function that send gps to server!!!!!!
+        self.manual_mode()
+
     def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
         if self.drone_connected is True:
             if self.vehicle.mode.name is not 'AUTO':
@@ -130,6 +138,16 @@ class DroneControl:
                     if self.command_mission is None:
                         self.read_mission()
                     if self.command_mission is not None:
+                        missionlist = []
+                        for cmd in self.command_mission:
+                            missionlist.append(cmd)
+
+                        self.command_mission.clear()
+
+                        for cmd in missionlist:
+                            self.command_mission.add(cmd)
+                        self.command_mission.upload()
+                        print(len(missionlist))
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
                         #self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
@@ -140,6 +158,7 @@ class DroneControl:
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.read_waypoint_live()
                         print("point 1")
+                        self.gui.show_msg_monitor(">> Start landing...", "msg")
                         while self.vehicle.armed:
                             time.sleep(1)
                         print("point 2")
@@ -160,7 +179,6 @@ class DroneControl:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
                 else:
                     self.vehicle.mode = VehicleMode("AUTO")
-                    self.gui.show_msg_monitor(">> AUTO mode activated andddddd ", "msg")
                     self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
             else:
                 self.gui.show_msg_monitor(">> Auto mode already on", "msg")
@@ -273,20 +291,25 @@ class DroneControl:
            # self.vehicle.heartbeat_timeout(1000)
         # Bad TCP connection
         except socket.error:
+            self.cam_connect = False
             print 'No server exists!'
-
+            return
         # Bad TTY connection
         except exceptions.OSError as e:
+            self.cam_connect = False
             print 'No serial exists!'
+            return
 
         # API Error
         except APIException:
+            self.cam_connect = False
             print 'the Time is out!'
             return
         # Other error
         except:
+            self.cam_connect = False
             print 'Some other error!'
-
+            return
         # vehicle attributes (state)
         # this line is for test!!!!!!!!!!!!!!!!!!
         print("Get some vehicle attribute values:")
@@ -300,6 +323,7 @@ class DroneControl:
         # Close vehicle object before exiting script
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected=True
+
         self.__home_loc = self.vehicle.location.global_relative_frame
         self.gui.show_msg_monitor(">> Drone is connected", "success")
         print"the drone is connected"
@@ -356,7 +380,8 @@ class DroneControl:
         if not self.person_is_detect:
             if self.drone_connected and self.vehicle.mode.name == 'AUTO':
                 self.gui.show_msg_monitor(">> PERSON DETECTED !!", 'person')
-                self.manual_mode()
+                #self.manual_mode()
+                self.stabilize_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
                 print("after msg show")

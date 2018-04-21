@@ -8,6 +8,7 @@ import subprocess
 import threading
 import time
 import vehicle
+import report
 from pymavlink import mavutil, mavwp
 from Tkinter import *
 import ttk
@@ -406,9 +407,11 @@ class Gui:
         self.message_box_pop = False
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
         self.drone_vehicle = vehicle.DroneControl(self)
+        self.repo = report.Report()
         self.drone_control = None
         self.video_window = None
         self.monitor_msg = None
+        self.get_image = False
 
         self.drone_is_connect = False  # this bool to know if the system connected to the drone and video system
         self.sitl_is_connect = False  # this bool to know if the system connected to the simulator
@@ -463,7 +466,10 @@ class Gui:
         self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,
                                           command=lambda: self.switch_on_off(master, 'sitl'))
         self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
-
+        """button image capture"""
+        self.image_capture = Button(self.drone_control,state=DISABLED, text="Image\ncapture", width=9, height=2,
+                                          command=self.get_image_function)
+        self.image_capture.grid(row=0, column=2, sticky=W + N, padx=4, pady=4)
         """button AUTO mode"""
         self.button_auto = Button(self.drone_control, state=DISABLED, text="Auto Search", width=9, height=3,
                                   command=self.send_auto_mode)
@@ -535,14 +541,18 @@ class Gui:
 
     def send_manual_mode(self):
         self.drone_vehicle.manual_mode()
+
     def send_rtl_mode(self):
         self.drone_vehicle.rtl_mode()
+
     def allow_deny_button(self,key):
         if key == 'allow':
+            self.image_capture.config(state=NORMAL)
             self.button_auto.config(state=NORMAL)
             self.button_manual.config(state=NORMAL)
             self.button_rtl.config(state=NORMAL)
         elif key == 'deny':
+            self.image_capture.config(state=DISABLED)
             self.button_auto.config(state=DISABLED)
             self.button_manual.config(state=DISABLED)
             self.button_rtl.config(state=DISABLED)
@@ -596,7 +606,6 @@ class Gui:
         get_info_drone.start()
         person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
         person_detection_video.start()
-        self.allow_deny_button('allow')
 
     def disconnect(self, key, master):  # disconnect from button
         if key == 'drone':
@@ -643,7 +652,8 @@ class Gui:
         else:
             root.destroy()
             return
-
+    def get_image_function(self):
+        self.get_image = True
     def cam_drone(self, master,key):  # master??
 
         self.detection_obj = PersonDetection(self.drone_vehicle, self)
@@ -670,39 +680,50 @@ class Gui:
         data = ""
         payload_size = struct.calcsize("L")
         open_label = False
-        while self.drone_is_connect or self.sitl_is_connect:
-            if self.drone_vehicle.cam_connect: # if the drone is not connected we will not continue to video
-                while len(data) < payload_size:
-                    data += conn.recv(4096)
-                if not data:
-                    print("helooooo word")
-                    self.socket_video.close()
-                packed_msg_size = data[:payload_size]
-                data = data[payload_size:]
-                msg_size = struct.unpack("L", packed_msg_size)[0]
-                while len(data) < msg_size:
-                    data += conn.recv(4096)
-                frame_data = data[:msg_size]
-                data = data[msg_size:]
-
-                if not open_label:
-                    self.video_window.config(width=460, height=400)
-                    open_label = True
-                last_frame = pickle.loads(frame_data)
-                last_frame = cv2.cvtColor(last_frame, cv2.COLOR_BGR2RGB)
-                img = Image.fromarray(last_frame)
-                imgtk = ImageTk.PhotoImage(image=img)
-                self.video_window.imgtk = imgtk
-                self.video_window.configure(image=imgtk)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    cv2.destroyAllWindows()
-                    break
-            else:   #if there was no connection to the drone, turn off the video and disconnect from all.
-                self.switch_on_off(master,key)
+        while not self.drone_vehicle.drone_connected:
+            if self.drone_vehicle.cam_connect is False:
+                self.switch_on_off(master, key)
                 break
+            time.sleep(1)
+
+        while self.drone_vehicle.drone_connected:
+         #while self.drone_is_connect or self.sitl_is_connect:
+            #if self.drone_vehicle.cam_connect: # if the drone is not connected we will not continue to video
+            while len(data) < payload_size:
+                data += conn.recv(4096)
+            if not data:
+                print("helooooo word")
+                self.socket_video.close()
+            packed_msg_size = data[:payload_size]
+            data = data[payload_size:]
+            msg_size = struct.unpack("L", packed_msg_size)[0]
+            while len(data) < msg_size:
+                data += conn.recv(4096)
+            frame_data = data[:msg_size]
+            data = data[msg_size:]
+
+            if not open_label:
+                self.video_window.config(width=460, height=400)
+                open_label = True
+            last_frame = pickle.loads(frame_data)
+            last_frame = cv2.cvtColor(last_frame, cv2.COLOR_BGR2RGB)
+            if self.get_image:
+                self.repo.set_image(last_frame)
+                self.get_image =False
+            img = Image.fromarray(last_frame)
+            imgtk = ImageTk.PhotoImage(image=img)
+            self.video_window.imgtk = imgtk
+            self.video_window.configure(image=imgtk)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                cv2.destroyAllWindows()
+                break
+            #else:   #if there was no connection to the drone, turn off the video and disconnect from all.
+                #self.switch_on_off(master,key)
+                #break
     def show_msg_monitor(self, msg, tag):
         self.monitor_msg.config(state='normal')
         self.monitor_msg.insert(END, msg + "\n", tag)
+        self.monitor_msg.see(END)
         self.monitor_msg.config(state='disabled')
 
 
@@ -749,6 +770,7 @@ class Gui:
         button_no = Button(self.message_box, text=msg_detail['no_b'], width=15, height=2,
                            command=lambda: self.user_reply_message('no',msg_detail['key']))
         button_no.grid(row=1, column=3)
+
         if msg_detail['key'] == 'person detection':
             send_gps = Button(self.message_box, text=msg_detail['mid_b'], width=15, height=2,
                                command=lambda: self.user_reply_message('mid', msg_detail['key']))
@@ -756,14 +778,17 @@ class Gui:
 
     def user_reply_message(self, answer,key):   #the function get answer from the user what he wants to do after receiving the message in create_message_box
         if key == 'person detection':
-            if answer == 'yes':
-                self.drone_vehicle.rtl_mode()
+            if answer == 'yes': #send gps and rtl
+                self.drone_vehicle.send_gps_and_rtl()
                 #self.message_box.destroy()
-            elif answer == 'no':
+
+            elif answer == 'no': #return to search
                 self.show_msg_monitor(">> Return to search", "msg")
                 self.drone_vehicle.auto_mode()
                 #self.message_box.destroy()
-            else:
+
+            else:   #send gps and stay in position
+                self.drone_vehicle.send_gps_and_stay()
                 print("need write a function here")
             self.message_box.destroy()
             self.message_box_pop =False
@@ -771,8 +796,15 @@ class Gui:
             check_alarm_operation_again.start()
 
     def update_parm_drone(self):
+
         while not self.drone_vehicle.drone_connected:
             time.sleep(1)
+            if self.drone_vehicle.cam_connect is False:
+                break
+
+        if self.drone_vehicle.drone_connected:
+            self.allow_deny_button('allow')
+
         while self.drone_vehicle.drone_connected:
             parm = self.drone_vehicle.get_info_drone()
             self.altitude_info.config(text=parm['alt'])
