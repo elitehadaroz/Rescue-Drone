@@ -52,7 +52,7 @@ class Report:
         self.__top_speed = ["Top speed",speed]
 
     def set_person_loc(self,loc,name):
-        person =["person"+self.__num_of_person + "," + name,"lon:",loc.lat,"lon:",loc.lon,"time detection:",self.__time_detection]
+        person =["person"+ str(self.__num_of_person) + "," + name,"lon:",str(loc.lat),"lon:",str(loc.lon),"time detection:",str(self.__time_detection)]
         self.__persons_location.append(person)
         self.__num_of_person += 1
 
@@ -72,10 +72,21 @@ class Report:
                 raise
 
 
-    def set_csv_on_report(self,info):
+    def create_report_mission(self):
         with open(self.path+'\Report mission.csv','ab') as new_file:
             self.csv_writer= csv.writer(new_file)
-            self.csv_writer.writerow(info)
+            self.csv_writer.writerow(self.__date)
+            self.csv_writer.writerow(self.__drone_connect_time)
+            self.csv_writer.writerow(self.__home_location)
+            self.csv_writer.writerow(self.__start_mission)
+            self.csv_writer.writerow(self.__end_mission)
+            self.csv_writer.writerow(self.__max_altitude)
+            self.csv_writer.writerow(self.__top_speed)
+            self.csv_writer.writerow(self.__number_waypoint)
+            self.csv_writer.writerow(self.__air_time)
+            if self.__num_of_person != 0:
+                for person in self.__persons_location:
+                    self.csv_writer.writerow(person)
         new_file.close()
 
 

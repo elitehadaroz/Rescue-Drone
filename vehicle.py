@@ -46,7 +46,7 @@ class DroneControl:
         if self.mavlink_connected is True:  # the connected succeeded
             print("is need to connect")
             self.gui.show_msg_monitor(">> mavProxy is connected", "success")
-            self.connecting_drone()
+            self.connecting_drone('drone')
         else:  # the connected not succeed
             self.cam_connect = False
             self.gui.show_msg_monitor(">> error: problem with connect to mavProxy,(120 sec pass)", "error")
@@ -120,16 +120,16 @@ class DroneControl:
     def manual_mode(self):      #set GUIDED mode,the drone now in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
         self.gui.show_msg_monitor(">> GUIDED mode activated", "msg")
-
+        self.vehicle.flush()
     def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.mode = VehicleMode("RTL")
         self.gui.show_msg_monitor(">> RTL mode activated", "msg")
-
+        self.vehicle.flush()
     def stabilize_mode(self):
         self.vehicle.mode = VehicleMode("STABILIZE")
         self.gui.show_msg_monitor(">> STABILIZE mode activated", "msg")
-
+        self.vehicle.flush()
     def send_gps_and_rtl(self):
 
         """need to write function that send gps to server!!!!!!"""
@@ -137,12 +137,12 @@ class DroneControl:
         info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
         self.report.set_csv_on_report(info)
         self.drone_vehicle.rtl_mode()
-
+        self.vehicle.flush()
     def send_gps_and_stay(self):
 
         """need to write function that send gps to server!!!!!!"""
         self.manual_mode()
-
+        self.vehicle.flush()
     def get_person_location(self):
         return self.__person_location
 
@@ -152,6 +152,7 @@ class DroneControl:
                 if not self.auto_mode_activated:
                     if self.command_mission is None:
                         self.read_mission()
+                        self.vehicle.flush()
                     if self.command_mission is not None:
                         missionlist = []
                         for cmd in self.command_mission:
@@ -171,6 +172,7 @@ class DroneControl:
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
                         self.vehicle.parameters['WPNAV_SPEED'] = 200
                         self.vehicle.mode = VehicleMode("AUTO")
+                        self.vehicle.flush()
                         self.read_waypoint_live()
                         print("point 1")
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
@@ -194,6 +196,7 @@ class DroneControl:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
                 else:
                     self.vehicle.mode = VehicleMode("AUTO")
+                    self.vehicle.flush()
                     self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
             else:
                 self.gui.show_msg_monitor(">> Auto mode already on", "msg")
@@ -294,15 +297,19 @@ class DroneControl:
         else:
             self.gui.show_msg_monitor(">> the drone is armed", "msg")
 
-    def connecting_drone(self):
+    def connecting_drone(self,key):
         self.gui.show_msg_monitor(">> drone connecting...", "msg")
         # Connect to the Vehicle.
         #print "Connecting to vehicle on: udp:127.0.0.1:14551"
         try:
-            # connecting to the vehicle by udp- this we can also open the massion planner with the python
-            self.vehicle = connect("127.0.0.1:14551", wait_ready=False, baud=57600)
-            # wait_ready is for that all info from drone upload 100%
-            self.vehicle.wait_ready(True, timeout=60)
+            if key == 'sitl':
+                self.vehicle = connect('127.0.0.1:14550', wait_ready=True)
+                print("sitl connect")
+            else:
+                # connecting to the vehicle by udp- this we can also open the massion planner with the python
+                self.vehicle = connect("127.0.0.1:14550", wait_ready=False, baud=57600)
+                # wait_ready is for that all info from drone upload 100%
+                self.vehicle.wait_ready(True, timeout=60)
            # self.vehicle.heartbeat_timeout(1000)
         # Bad TCP connection
         except socket.error:
@@ -362,12 +369,12 @@ class DroneControl:
 
     def connection_mavproxy_sitl(self):
         time.sleep(4)
-        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
+        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
         self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
         print("self.dronekit_process", self.mavProxy_sitl_proc.pid)
         print("im in mavproxy sitl connection")
         time.sleep(3)
-        self.connecting_drone()
+        self.connecting_drone('sitl')
 
 
     def sitl_disconnect(self):
@@ -395,8 +402,8 @@ class DroneControl:
         if not self.person_is_detect:
             if self.drone_connected and self.vehicle.mode.name == 'AUTO':
                 self.gui.show_msg_monitor(">> PERSON DETECTED !!", 'person')
-                #self.manual_mode()
-                self.stabilize_mode()
+                self.manual_mode()
+                #self.stabilize_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
                 #print("after msg show")

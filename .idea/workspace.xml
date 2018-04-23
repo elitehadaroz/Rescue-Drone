@@ -3,6 +3,11 @@
   <component name="ChangeListManager">
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
+      <change beforePath="$PROJECT_DIR$/mav.tlog" afterPath="$PROJECT_DIR$/mav.tlog" />
+      <change beforePath="$PROJECT_DIR$/mav.tlog.raw" afterPath="$PROJECT_DIR$/mav.tlog.raw" />
+      <change beforePath="$PROJECT_DIR$/report.py" afterPath="$PROJECT_DIR$/report.py" />
+      <change beforePath="$PROJECT_DIR$/vehicle.py" afterPath="$PROJECT_DIR$/vehicle.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -16,14 +21,13 @@
       <file leaf-file-name="drone_control.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/drone_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="221">
-              <caret line="799" column="0" lean-forward="true" selection-start-line="799" selection-start-column="0" selection-end-line="799" selection-end-column="0" />
+            <state relative-caret-position="-7009">
+              <caret line="126" column="85" lean-forward="false" selection-start-line="126" selection-start-column="79" selection-end-line="126" selection-end-column="85" />
               <folding>
                 <element signature="e#26#43#0" expanded="true" />
                 <element signature="e#20283#20466#0" expanded="false" />
                 <element signature="e#22637#23723#0" expanded="false" />
                 <element signature="e#26707#28511#0" expanded="false" />
-                <element signature="e#28588#29370#0" expanded="false" />
                 <element signature="e#29445#30191#0" expanded="false" />
                 <element signature="e#30341#30756#0" expanded="false" />
                 <element signature="e#30803#31260#0" expanded="false" />
@@ -35,13 +39,13 @@
       <file leaf-file-name="vehicle.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/vehicle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="61">
-              <caret line="395" column="73" lean-forward="true" selection-start-line="395" selection-start-column="73" selection-end-line="395" selection-end-column="73" />
+            <state relative-caret-position="102">
+              <caret line="300" column="41" lean-forward="false" selection-start-line="300" selection-start-column="40" selection-end-line="300" selection-end-column="41" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
-                <element signature="e#2397#3330#0" expanded="false" />
-                <element signature="e#3478#3665#0" expanded="false" />
-                <element signature="e#11338#11771#0" expanded="false" />
+                <element signature="e#2404#3337#0" expanded="false" />
+                <element signature="e#3485#3672#0" expanded="false" />
+                <element signature="e#11616#12049#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -50,8 +54,8 @@
       <file leaf-file-name="report.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/report.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="165">
-              <caret line="54" column="129" lean-forward="false" selection-start-line="54" selection-start-column="129" selection-end-line="54" selection-end-column="129" />
+            <state relative-caret-position="437">
+              <caret line="88" column="52" lean-forward="false" selection-start-line="88" selection-start-column="52" selection-end-line="88" selection-end-column="52" />
               <folding>
                 <element signature="e#1#10#0" expanded="true" />
                 <element signature="e#895#944#0" expanded="false" />
@@ -60,7 +64,7 @@
                 <element signature="e#1167#1202#0" expanded="false" />
                 <element signature="e#1248#1299#0" expanded="false" />
                 <element signature="e#1427#1465#0" expanded="false" />
-                <element signature="e#1884#2276#0" expanded="false" />
+                <element signature="e#1905#2297#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -99,6 +103,7 @@
       <find>rtl</find>
       <find>__home_loc</find>
       <find>allow_deny_button</find>
+      <find>connec</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -109,8 +114,8 @@
       <list>
         <option value="$PROJECT_DIR$/person_detection.py" />
         <option value="$PROJECT_DIR$/drone_control.py" />
-        <option value="$PROJECT_DIR$/vehicle.py" />
         <option value="$PROJECT_DIR$/report.py" />
+        <option value="$PROJECT_DIR$/vehicle.py" />
       </list>
     </option>
   </component>
@@ -371,7 +376,14 @@
       <option name="project" value="LOCAL" />
       <updated>1524344195878</updated>
     </task>
-    <option name="localTasksCounter" value="21" />
+    <task id="LOCAL-00021" summary="start create report mission in csv file,add air time info">
+      <created>1524344225118</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1524344225118</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="TodoView">
@@ -465,7 +477,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -482,7 +493,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -499,7 +509,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -516,7 +525,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -533,7 +541,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -550,7 +557,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -567,7 +573,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -584,7 +589,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -601,7 +605,6 @@
             <element signature="e#20283#20466#0" expanded="false" />
             <element signature="e#22637#23723#0" expanded="false" />
             <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
             <element signature="e#29445#30191#0" expanded="false" />
             <element signature="e#30341#30756#0" expanded="false" />
             <element signature="e#30803#31260#0" expanded="false" />
@@ -667,27 +670,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/drone_control.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="221">
-          <caret line="799" column="0" lean-forward="true" selection-start-line="799" selection-start-column="0" selection-end-line="799" selection-end-column="0" />
-          <folding>
-            <element signature="e#26#43#0" expanded="true" />
-            <element signature="e#20283#20466#0" expanded="false" />
-            <element signature="e#22637#23723#0" expanded="false" />
-            <element signature="e#26707#28511#0" expanded="false" />
-            <element signature="e#28588#29370#0" expanded="false" />
-            <element signature="e#29445#30191#0" expanded="false" />
-            <element signature="e#30341#30756#0" expanded="false" />
-            <element signature="e#30803#31260#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/report.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="165">
-          <caret line="54" column="129" lean-forward="false" selection-start-line="54" selection-start-column="129" selection-end-line="54" selection-end-column="129" />
+        <state relative-caret-position="437">
+          <caret line="88" column="52" lean-forward="false" selection-start-line="88" selection-start-column="52" selection-end-line="88" selection-end-column="52" />
           <folding>
             <element signature="e#1#10#0" expanded="true" />
             <element signature="e#895#944#0" expanded="false" />
@@ -696,20 +682,36 @@
             <element signature="e#1167#1202#0" expanded="false" />
             <element signature="e#1248#1299#0" expanded="false" />
             <element signature="e#1427#1465#0" expanded="false" />
-            <element signature="e#1884#2276#0" expanded="false" />
+            <element signature="e#1905#2297#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/drone_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-7009">
+          <caret line="126" column="85" lean-forward="false" selection-start-line="126" selection-start-column="79" selection-end-line="126" selection-end-column="85" />
+          <folding>
+            <element signature="e#26#43#0" expanded="true" />
+            <element signature="e#20283#20466#0" expanded="false" />
+            <element signature="e#22637#23723#0" expanded="false" />
+            <element signature="e#26707#28511#0" expanded="false" />
+            <element signature="e#29445#30191#0" expanded="false" />
+            <element signature="e#30341#30756#0" expanded="false" />
+            <element signature="e#30803#31260#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/vehicle.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="61">
-          <caret line="395" column="73" lean-forward="true" selection-start-line="395" selection-start-column="73" selection-end-line="395" selection-end-column="73" />
+        <state relative-caret-position="102">
+          <caret line="300" column="41" lean-forward="false" selection-start-line="300" selection-start-column="40" selection-end-line="300" selection-end-column="41" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
-            <element signature="e#2397#3330#0" expanded="false" />
-            <element signature="e#3478#3665#0" expanded="false" />
-            <element signature="e#11338#11771#0" expanded="false" />
+            <element signature="e#2404#3337#0" expanded="false" />
+            <element signature="e#3485#3672#0" expanded="false" />
+            <element signature="e#11616#12049#0" expanded="false" />
           </folding>
         </state>
       </provider>

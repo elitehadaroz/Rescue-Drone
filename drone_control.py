@@ -847,6 +847,7 @@ class Gui:
                 end_mission =  time.strftime("%H:%M:%S")
                 self.repo.set_end_mission(end_mission)
                 self.repo.set_air_time(ck)
+                self.repo.create_report_mission() ## when the drone landed create report file.
 
 
             parm = self.drone_vehicle.get_info_drone()
