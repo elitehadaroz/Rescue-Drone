@@ -1,6 +1,7 @@
 # -*- coding: cp1255 -*-
-
+# -*- coding: utf-8 -*-
 import exceptions
+import codecs
 import pickle
 import socket
 import struct
@@ -9,6 +10,7 @@ import threading
 import time
 import vehicle
 import report
+
 from pymavlink import mavutil, mavwp
 from Tkinter import *
 import ttk
@@ -412,8 +414,8 @@ class Gui:
         self.drone_control = None
         self.video_window = None
         self.monitor_msg = None
+        self.info = None
         self.get_image = False
-
         self.drone_is_connect = False  # this bool to know if the system connected to the drone and video system
         self.sitl_is_connect = False  # this bool to know if the system connected to the simulator
 
@@ -467,6 +469,7 @@ class Gui:
         self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,
                                           command=lambda: self.switch_on_off(master, 'sitl'))
         self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
+
         """button image capture"""
         self.image_capture = Button(self.drone_control,state=DISABLED, text="Image\ncapture", width=9, height=2,
                                           command=self.get_image_function)
@@ -484,6 +487,7 @@ class Gui:
         self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3, command=self.send_rtl_mode)
         self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
 
+
     def create_monitor_msg(self,master):
         indication_frame = Frame(master, height=200, bg='gray')
         for x in xrange(2):
@@ -495,9 +499,9 @@ class Gui:
 
         # frame for msg from the drone and software
         self.monitor_msg = Text(indication_frame, width=30, background='black')
-        self.monitor_msg.grid(row=0, column=0, sticky=W + N + S + E)
+        self.monitor_msg.grid(row=0, column=0,columnspan=4, sticky=W + N + S + E)
         scrollbar = Scrollbar(indication_frame)
-        scrollbar.grid(row=0, column=0, sticky=E + N + S)
+        scrollbar.grid(row=0, column=3, sticky=E + N + S )
         self.monitor_msg.config(yscrollcommand=scrollbar.set)
         scrollbar.config(command=self.monitor_msg.yview)
         self.monitor_msg.tag_configure("success", foreground='#00B400')
@@ -510,10 +514,10 @@ class Gui:
         self.info = Frame(indication_frame, bg='#282828')
         for x in xrange(10):
             indication_frame.grid_rowconfigure(x, weight=1)
-        for y in xrange(5):
+        for y in xrange(8):
             indication_frame.grid_columnconfigure(y, weight=1)
 
-        self.info.grid(row=0, column=1, columnspan=4, sticky=W + N + S + E)
+        self.info.grid(row=0, column=4, columnspan=7, sticky=W +  N + S + E)
 
         self.altitude_label = Label(self.info, text="Altitude (m)",font=('Arial', 10), fg="white",bg='#282828')
         self.altitude_label.grid(row=0, column=0,padx=10)
@@ -540,8 +544,65 @@ class Gui:
         self.time_air_info = Label(self.info, text="00:00:00", font=('Arial', 20), fg="#FFD700", bg='#282828')
         self.time_air_info.grid(row=1, column=1, padx=10)
 
+        self.move_up = Button(self.info, state=DISABLED, text="Up", width=4, height=2, command=self.send_rtl_mode)
+        self.move_up.grid(row=1, column=3, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_dwon = Button(self.info, state=DISABLED, text="Dwon", width=4, height=2, command=self.send_rtl_mode)
+        self.move_dwon.grid(row=2, column=3, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.spin_right = Button(self.info, state=DISABLED, text="Spin" + u'\u23f5', width=4, height=2,
+                                 command=self.send_rtl_mode)
+        self.spin_right.grid(row=2, column=4, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.spin_left = Button(self.info, state=DISABLED, text=u'\u23f4' + "Spin", width=4, height=2,
+                                command=self.send_rtl_mode)
+        self.spin_left.grid(row=2, column=2, columnspan=1, sticky=E + N, padx=4, pady=4)
+
+        self.move_forward = Button(self.info, state=DISABLED, text=u'\u23f6', width=4, height=2,
+                                   command=self.send_rtl_mode)
+        self.move_forward.grid(row=1, column=6, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_back = Button(self.info, state=DISABLED, text=u'\u23f7', width=4, height=2,
+                                command=self.send_rtl_mode)
+        self.move_back.grid(row=2, column=6, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_right = Button(self.info, state=DISABLED, text=u'\u23f5', width=4, height=2,
+                                 command=self.send_rtl_mode)
+        self.move_right.grid(row=2, column=7, columnspan=1, sticky=N + S, padx=4, pady=4)
+        self.move_left = Button(self.info, state=DISABLED, text=u'\u23f4', width=4, height=2,
+                                command=self.send_rtl_mode)
+        self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=4, pady=4)
+
+        self.keyboard_control_bool = BooleanVar()
+        button_keyboard_control = Checkbutton(self.drone_control, text="Keyboard control", bg='gray',
+                                              activebackground='gray', variable=self.keyboard_control_bool,
+                                              command=self.show_keyboard_control)
+        button_keyboard_control.grid(row=0, column=0, sticky=W)
+
+    def show_keyboard_control(self):
+        if self.keyboard_control_bool.get() is True:
+
+            self.move_up.config(state=NORMAL)
+            self.move_dwon.config(state=NORMAL)
+            self.spin_right.config(state=NORMAL)
+            self.spin_left.config(state=NORMAL)
+            self.move_forward.config(state=NORMAL)
+            self.move_back.config(state=NORMAL)
+            self.move_right.config(state=NORMAL)
+            self.move_left.config(state=NORMAL)
+
+        elif self.keyboard_control_bool.get() is False:
+            print("helllloooooooooooo")
+            self.move_up.config(state=DISABLED)
+            self.move_dwon.config(state=DISABLED)
+            self.spin_right.config(state=DISABLED)
+            self.spin_left.config(state=DISABLED)
+            self.move_forward.config(state=DISABLED)
+            self.move_back.config(state=DISABLED)
+            self.move_right.config(state=DISABLED)
+            self.move_left.config(state=DISABLED)
+
+
+
     # this function send to drone move to AUTO mode
     def send_auto_mode(self):
+
+        print("hello uuuuuuuuuuuuuuuuuuuu")
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
 
@@ -605,7 +666,12 @@ class Gui:
             connecting_drone_thread = threading.Thread(name='connect_to_drone_thread',target=self.drone_vehicle.mav_proxy_connect)
             connecting_drone_thread.start()
         else:
-            connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl())
+            #p = Process(target=self.drone_vehicle.connecting_sitl())
+            #p.start()
+            #p.join()
+            print("afterrrrrrr start")
+            #self.drone_vehicle.connecting_drone('sitl')
+            connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl)
             connecting_sitl_thread.start()
 
         get_info_drone = threading.Thread(name='send info',target=self.update_parm_drone)
@@ -678,6 +744,7 @@ class Gui:
             conn, addr = self.socket_video.accept()
             conn.setblocking(1)
         except socket.error, exc:
+            self.show_msg_monitor(">> error,problem video connect: %s" % exc,'error')
             print("error,problem video connect: %s" % exc)
             if self.drone_is_connect:
                 self.switch_on_off(master, 'drone')
@@ -873,16 +940,73 @@ class Gui:
                 time.sleep(2)
             else:
                 continue
-"""
-    def change_color(self):
 
-        while self.message_box_pop:
-            print "i in change color"
-            self.message_box.configure( fg='red' )
-            #*.style().configure(self.message_box,fg='white')
-            time.sleep(1)
-            self.message_box.configure( fg='white' )
-"""
+
+    def key(self,event):
+        gnd_speed = 2  # [m/s]
+        """
+        if event.char == event.keysym:  # -- standard keys
+            if event.keysym == 'r':
+                print("r pressed >> Set the vehicle to RTL")
+                self.drone_vehicle.arm_and_takeoff(20)  # start takeoff
+        """
+        if self.keyboard_control_bool.get() is True and self.drone_vehicle.is_armed is True:
+            if event.char == event.keysym:  # -- standard keys
+                if event.keysym == 's':
+                    print("down")
+                    self.move_dwon.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, 0, gnd_speed,0)
+                    self.move_dwon.after(100, lambda: self.move_dwon.config(relief=RAISED))
+                elif event.keysym == 'w':
+                    print("up")
+                    self.move_up.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, 0, -gnd_speed,0)
+                    self.move_up.after(100, lambda: self.move_up.config(relief=RAISED))
+                elif event.keysym == 'd':
+                    print("yaw right")
+                    self.spin_right.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, 0, 0,1,'yaw')
+                    self.spin_right.after(100, lambda: self.spin_right.config(relief=RAISED))
+                elif event.keysym == 'a':
+                    print("yaw left")
+                    self.spin_left.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, 0, 0, -1,'yaw')
+                    self.spin_left.after(100, lambda: self.spin_left.config(relief=RAISED))
+
+                elif event.keysym == 'u':
+                    self.button_auto.config(relief = SUNKEN)
+                    self.send_auto_mode()
+                    self.button_auto.after(100, lambda: self.button_auto.config(relief=RAISED))
+
+
+
+            else:  # -- non standard keys
+                if event.keysym == 'Up':
+                    print("forward")
+                    self.move_forward.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body( gnd_speed, 0, 0,0)
+                    self.move_forward.after(100, lambda: self.move_forward.config(relief=RAISED))
+                elif event.keysym == 'Down':
+                    print("backwards")
+                    self.move_back.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(-gnd_speed, 0, 0,0)
+                    self.move_back.after(100, lambda: self.move_back.config(relief=RAISED))
+                elif event.keysym == 'Left':
+                    print("lefttttttttttttttttttttttttt")
+                    self.move_left.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, -gnd_speed, 0,0)
+                    self.move_left.after(100, lambda: self.move_left.config(relief=RAISED))
+                elif event.keysym == 'Right':
+                    print("rightttttttttttttttttttttttt")
+                    self.move_right.config(relief=SUNKEN)
+                    self.drone_vehicle.set_velocity_body(0, gnd_speed, 0,0)
+                    self.move_right.after(100, lambda: self.move_right.config(relief=RAISED))
+
+        print("enddddddddddddddd offfff key function")
+
+    def aplly_key(self,event):
+        key_button = threading.Thread(name="key_button", target=lambda :self.key(event))  # check when possible again alarm operation
+        key_button.start()
 ###############################################################################################################################
 ##################################################### main ####################################################################
 
@@ -891,6 +1015,7 @@ if __name__ == "__main__":
 
     gui = Gui(root)
 
+    root.bind_all('<Key>',gui.aplly_key)
     root.mainloop()
     print("after person detection")
     sys.exit()

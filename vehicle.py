@@ -7,7 +7,7 @@ from pymavlink import mavutil, mavwp
 from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 import exceptions
 import math
-
+import os
 
 class DroneControl:
     def __init__(self, gui_obj,repo_obj):
@@ -95,27 +95,6 @@ class DroneControl:
             subprocess.Popen('taskkill /F /T /PID %i' % pid, shell=True)
             self.gui.show_msg_monitor(">> Drone is disconnected", "msg")
 
-    def read_mission(self):     # after the user insert track on mission planner,this function read the track and save is on command_mission
-        if self.command_mission is None :
-            self.command_mission = self.vehicle.commands
-            self.command_mission.download()
-            self.command_mission.wait_ready()
-            if self.command_mission.count !=0:
-                self.gui.show_msg_monitor(">> Waiting for home location ...", "msg")
-            while not self.vehicle.home_location:
-                self.command_mission = self.vehicle.commands
-                self.command_mission.download()
-                self.command_mission.wait_ready()
-                self.report.set_num_waypoint(self.command_mission.count)
-                print(self.command_mission.count)
-                if not self.vehicle.home_location:
-                    time.sleep(1)
-            if self.vehicle.home_location and self.command_mission.count != 0:
-                self.gui.show_msg_monitor(">> Home location saved ", "success")
-                self.report.set_home_location(self.__home_loc)
-            if self.command_mission is not None:
-                if self.command_mission.count == 0:
-                    self.command_mission = None
 
     def manual_mode(self):      #set GUIDED mode,the drone now in GUIDED mode
         self.vehicle.mode = VehicleMode("GUIDED")
@@ -130,6 +109,47 @@ class DroneControl:
         self.vehicle.mode = VehicleMode("STABILIZE")
         self.gui.show_msg_monitor(">> STABILIZE mode activated", "msg")
         self.vehicle.flush()
+
+    def set_velocity_body(self, vx, vy, vz,yaw,command=''):
+
+        """ Remember: vz is positive downward!!!
+            http://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html
+
+            Bitmask to indicate which dimensions should be ignored by the vehicle
+            (a value of 0b0000000000000000 or 0b0000001000000000 indicates that
+            none of the setpoint dimensions should be ignored). Mapping:
+            bit 1: x,  bit 2: y,  bit 3: z,
+            bit 4: vx, bit 5: vy, bit 6: vz,
+            bit 7: ax, bit 8: ay, bit 9:
+
+
+            """
+        if command == 'yaw':
+            print("i in yawwwwwwwwwwwwwwwwwwwwwwwww")
+            msg = self.vehicle.message_factory.command_long_encode(
+                0, 0,  # target system, target component
+                mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
+                0,  # confirmation
+                2,  # param 1, yaw in degrees
+                0,  # param 2, yaw speed deg/s
+                yaw,  # param 3, direction -1 ccw, 1 cw
+                1,  # param 4, relative offset 1, absolute angle 0
+                0, 0, 0)  # param 5 ~ 7 not used
+            # send command to vehicle
+            #self.vehicle.send_mavlink(msg)
+        else:
+            msg = self.vehicle.message_factory.set_position_target_local_ned_encode(
+                0,
+                0, 0,
+                mavutil.mavlink.MAV_FRAME_BODY_NED,
+                0b0000111111000111,  # -- BITMASK -> Consider only the velocities
+                0, 0, 0,  # -- POSITION
+                vx, vy, vz,  # -- VELOCITY
+                0, 0, 0,  # -- ACCELERATIONS
+                0, yaw)
+        self.vehicle.send_mavlink(msg)
+        self.vehicle.flush()
+
     def send_gps_and_rtl(self):
 
         """need to write function that send gps to server!!!!!!"""
@@ -146,13 +166,35 @@ class DroneControl:
     def get_person_location(self):
         return self.__person_location
 
+
+    def read_mission(self):     # after the user insert track on mission planner,this function read the track and save is on command_mission
+        if self.command_mission is None :
+            while not self.vehicle.home_location:
+                self.command_mission = self.vehicle.commands
+                self.command_mission.download()
+                self.command_mission.wait_ready()
+                self.report.set_num_waypoint(self.command_mission.count)
+                if self.command_mission.count != 0:
+                    self.gui.show_msg_monitor(">> Waiting for home location ...", "msg")
+                if not self.vehicle.home_location:
+                    time.sleep(1)
+                    print("here oa read mission")
+            if self.command_mission is not None:
+                if self.vehicle.home_location and self.command_mission.count != 0:
+                    self.gui.show_msg_monitor(">> Home location saved ", "success")
+                    self.report.set_home_location(self.__home_loc)
+                    self.vehicle.flush()
+                    print("hereeeeeeeeeeeeeeeeeeeeeeeee")
+                if self.command_mission is not None:
+                    if self.command_mission.count == 0:
+                        self.command_mission = None
+
     def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
         if self.drone_connected is True:
             if self.vehicle.mode.name is not 'AUTO':
-                if not self.auto_mode_activated:
+                if self.auto_mode_activated is False:
                     if self.command_mission is None:
                         self.read_mission()
-                        self.vehicle.flush()
                     if self.command_mission is not None:
                         missionlist = []
                         for cmd in self.command_mission:
@@ -304,6 +346,7 @@ class DroneControl:
         try:
             if key == 'sitl':
                 self.vehicle = connect('127.0.0.1:14550', wait_ready=True)
+                #self.vehicle.wait_ready(True, timeout=60)
                 print("sitl connect")
             else:
                 # connecting to the vehicle by udp- this we can also open the massion planner with the python
@@ -360,13 +403,23 @@ class DroneControl:
         """
 
     def connecting_sitl(self):
+        """"
+        print("blaaaaa blaaa blaaaaas")
         self.cam_connect = True
         drone_kit_sitl = 'dronekit-sitl copter --home=31.7965240478516,35.3291511535645,248.839996337891,240'
         self.dronekit_process = subprocess.Popen(drone_kit_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
         print("self.dronekit_process",self.dronekit_process.pid)
-        mavproxy_sitl_thread = threading.Thread(name='start mavProxy sitl', target=self.connection_mavproxy_sitl)
-        mavproxy_sitl_thread.start()
-
+        #mavproxy_sitl_thread = threading.Thread(name='start mavProxy sitl', target=self.connection_mavproxy_sitl)
+        #mavproxy_sitl_thread.start()
+        #time.sleep(4)
+        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
+        self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
+        print("self.dronekit_process", self.mavProxy_sitl_proc.pid)
+        print("im in mavproxy sitl connection")
+        #time.sleep(3)
+        """
+        self.connecting_drone('sitl')
+    """
     def connection_mavproxy_sitl(self):
         time.sleep(4)
         mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
@@ -375,7 +428,7 @@ class DroneControl:
         print("im in mavproxy sitl connection")
         time.sleep(3)
         self.connecting_drone('sitl')
-
+    """
 
     def sitl_disconnect(self):
         print('im in sitl disconnected')
