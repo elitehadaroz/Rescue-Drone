@@ -10,7 +10,7 @@ import threading
 import time
 import vehicle
 import report
-
+import setting
 from pymavlink import mavutil, mavwp
 from Tkinter import *
 import ttk
@@ -409,6 +409,7 @@ class Gui:
         self.message_box_pop = False
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
         self.repo = report.Report()
+        self.setting = setting.Setting(master)
         self.drone_vehicle = vehicle.DroneControl(self,self.repo)
 
         self.drone_control = None
@@ -440,6 +441,14 @@ class Gui:
         self.show_msg_monitor(">> Welcome to Rescue Drone software", 'msg')
 
         master.protocol("WM_DELETE_WINDOW", lambda:self.on_closing(master))
+
+
+
+        #menu_widget.add_command(label="Item2",command=menu_callback)
+        #menu_widget.add_command(label="Item3",command=menu_callback)
+
+
+
         # self.show_msg_monitor(">> im innnnln lknkn lknlk nlknrw klfokwmf fwfwwffw aaaaaa bbbbbbbb n","success")
         # self.show_msg_monitor(">> and i in new line",'error')
         # self.show_msg_monitor(">> perso person",'person')
@@ -545,28 +554,28 @@ class Gui:
         self.time_air_info.grid(row=1, column=1, padx=10)
 
         self.move_up = Button(self.info, state=DISABLED, text="Up", width=4, height=2, command=self.send_rtl_mode)
-        self.move_up.grid(row=1, column=3, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_up.grid(row=1, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
         self.move_dwon = Button(self.info, state=DISABLED, text="Dwon", width=4, height=2, command=self.send_rtl_mode)
-        self.move_dwon.grid(row=2, column=3, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_dwon.grid(row=2, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
         self.spin_right = Button(self.info, state=DISABLED, text="Spin" + u'\u23f5', width=4, height=2,
                                  command=self.send_rtl_mode)
-        self.spin_right.grid(row=2, column=4, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.spin_right.grid(row=2, column=4, columnspan=1, sticky=E + N, padx=2, pady=2)
         self.spin_left = Button(self.info, state=DISABLED, text=u'\u23f4' + "Spin", width=4, height=2,
                                 command=self.send_rtl_mode)
-        self.spin_left.grid(row=2, column=2, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.spin_left.grid(row=2, column=2, columnspan=1, sticky=E + N, padx=2, pady=2)
 
         self.move_forward = Button(self.info, state=DISABLED, text=u'\u23f6', width=4, height=2,
                                    command=self.send_rtl_mode)
-        self.move_forward.grid(row=1, column=6, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_forward.grid(row=1, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
         self.move_back = Button(self.info, state=DISABLED, text=u'\u23f7', width=4, height=2,
                                 command=self.send_rtl_mode)
-        self.move_back.grid(row=2, column=6, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_back.grid(row=2, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
         self.move_right = Button(self.info, state=DISABLED, text=u'\u23f5', width=4, height=2,
                                  command=self.send_rtl_mode)
-        self.move_right.grid(row=2, column=7, columnspan=1, sticky=N + S, padx=4, pady=4)
+        self.move_right.grid(row=2, column=7, columnspan=1, sticky=N + S, padx=2, pady=2)
         self.move_left = Button(self.info, state=DISABLED, text=u'\u23f4', width=4, height=2,
                                 command=self.send_rtl_mode)
-        self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=4, pady=4)
+        self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=2, pady=2)
 
         self.keyboard_control_bool = BooleanVar()
         button_keyboard_control = Checkbutton(self.drone_control, text="Keyboard control", bg='gray',

@@ -434,7 +434,7 @@ class DroneControl:
         print('im in sitl disconnected')
         self.cam_connect = False
         self.drone_connected = False
-        self.dronekit_process.kill()
+        #self.dronekit_process.kill()
         search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
 
         port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
