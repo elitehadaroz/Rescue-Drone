@@ -17,7 +17,7 @@ class Setting:
 
         def get_altitude(self):
             return self.__setting['set altitude(meter)']
-        def speed(self):
+        def get_speed(self):
             return self.__setting['set speed(c\s)']
         def get_num_of_cell(self):
             return self.__setting['set num of cell']
@@ -50,7 +50,7 @@ class Setting:
             for entry in entries:
                 if p.match(entry[1].get()):
                     self.__setting[entry[0]] = entry[1].get()
-
+            print( type(self.__setting['set speed(c\s)']))
             win.destroy()
 
         def upload_mission(self):

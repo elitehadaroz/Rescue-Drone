@@ -4,6 +4,7 @@
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
+      <change beforePath="$PROJECT_DIR$/report.py" afterPath="$PROJECT_DIR$/report.py" />
       <change beforePath="$PROJECT_DIR$/setting.py" afterPath="$PROJECT_DIR$/setting.py" />
       <change beforePath="$PROJECT_DIR$/vehicle.py" afterPath="$PROJECT_DIR$/vehicle.py" />
     </list>
@@ -19,8 +20,8 @@
       <file leaf-file-name="drone_control.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/drone_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="256">
-              <caret line="413" column="0" lean-forward="false" selection-start-line="413" selection-start-column="0" selection-end-line="413" selection-end-column="0" />
+            <state relative-caret-position="346">
+              <caret line="890" column="35" lean-forward="false" selection-start-line="890" selection-start-column="35" selection-end-line="890" selection-end-column="35" />
               <folding>
                 <element signature="e#49#66#0" expanded="true" />
                 <element signature="e#20565#20748#0" expanded="false" />
@@ -31,17 +32,16 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="setting.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="setting.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setting.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="392">
-              <caret line="31" column="24" lean-forward="true" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
+            <state relative-caret-position="323">
+              <caret line="20" column="19" lean-forward="false" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
               <folding>
                 <element signature="e#3#24#0" expanded="true" />
                 <element signature="e#619#663#0" expanded="false" />
-                <element signature="e#701#740#0" expanded="false" />
-                <element signature="e#788#828#0" expanded="false" />
-                <element signature="e#879#925#0" expanded="false" />
+                <element signature="e#792#832#0" expanded="false" />
+                <element signature="e#883#929#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -50,32 +50,25 @@
       <file leaf-file-name="vehicle.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/vehicle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="272">
-              <caret line="266" column="31" lean-forward="false" selection-start-line="266" selection-start-column="31" selection-end-line="266" selection-end-column="31" />
+            <state relative-caret-position="-5230">
+              <caret line="158" column="9" lean-forward="false" selection-start-line="158" selection-start-column="9" selection-end-line="158" selection-end-column="9" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
                 <element signature="e#2460#3393#0" expanded="false" />
                 <element signature="e#3541#3728#0" expanded="false" />
-                <element signature="e#13436#13869#0" expanded="false" />
+                <element signature="e#13516#13949#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="report.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="report.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/report.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1224">
-              <caret line="88" column="52" lean-forward="false" selection-start-line="88" selection-start-column="52" selection-end-line="88" selection-end-column="52" />
+            <state relative-caret-position="272">
+              <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
               <folding>
                 <element signature="e#1#10#0" expanded="true" />
-                <element signature="e#895#944#0" expanded="false" />
-                <element signature="e#993#1039#0" expanded="false" />
-                <element signature="e#1084#1124#0" expanded="false" />
-                <element signature="e#1167#1202#0" expanded="false" />
-                <element signature="e#1248#1299#0" expanded="false" />
-                <element signature="e#1427#1465#0" expanded="false" />
-                <element signature="e#1905#2297#0" expanded="false" />
               </folding>
             </state>
           </provider>
@@ -116,6 +109,10 @@
       <find>allow_deny_button</find>
       <find>connec</find>
       <find>bool</find>
+      <find>set_max_alt</find>
+      <find>report</find>
+      <find>create_report_mission</find>
+      <find>set_csv_on_report</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -125,10 +122,10 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/person_detection.py" />
-        <option value="$PROJECT_DIR$/report.py" />
-        <option value="$PROJECT_DIR$/drone_control.py" />
-        <option value="$PROJECT_DIR$/vehicle.py" />
         <option value="$PROJECT_DIR$/setting.py" />
+        <option value="$PROJECT_DIR$/vehicle.py" />
+        <option value="$PROJECT_DIR$/drone_control.py" />
+        <option value="$PROJECT_DIR$/report.py" />
       </list>
     </option>
   </component>
@@ -417,7 +414,14 @@
       <option name="project" value="LOCAL" />
       <updated>1525030673772</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="work on the setting page">
+      <created>1525106825841</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1525106825841</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TodoView">
@@ -437,7 +441,7 @@
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29605263" sideWeight="0.50292826" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.375" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.1825658" sideWeight="0.49707174" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.25493422" sideWeight="0.49707174" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
@@ -494,7 +498,8 @@
     <MESSAGE value="work on the report file" />
     <MESSAGE value="add possibility to control on the drone from keyboard" />
     <MESSAGE value="start to create setting page" />
-    <option name="LAST_COMMIT_MESSAGE" value="start to create setting page" />
+    <MESSAGE value="work on the setting page" />
+    <option name="LAST_COMMIT_MESSAGE" value="work on the setting page" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -526,7 +531,7 @@
             <element signature="e#0#16#0" expanded="true" />
             <element signature="e#2460#3393#0" expanded="false" />
             <element signature="e#3541#3728#0" expanded="false" />
-            <element signature="e#13436#13869#0" expanded="false" />
+            <element signature="e#13516#13949#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -537,13 +542,6 @@
           <caret line="88" column="52" lean-forward="false" selection-start-line="88" selection-start-column="52" selection-end-line="88" selection-end-column="52" />
           <folding>
             <element signature="e#1#10#0" expanded="true" />
-            <element signature="e#895#944#0" expanded="false" />
-            <element signature="e#993#1039#0" expanded="false" />
-            <element signature="e#1084#1124#0" expanded="false" />
-            <element signature="e#1167#1202#0" expanded="false" />
-            <element signature="e#1248#1299#0" expanded="false" />
-            <element signature="e#1427#1465#0" expanded="false" />
-            <element signature="e#1905#2297#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -722,27 +720,36 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/report.py">
+    <entry file="file://$PROJECT_DIR$/vehicle.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1224">
-          <caret line="88" column="52" lean-forward="false" selection-start-line="88" selection-start-column="52" selection-end-line="88" selection-end-column="52" />
+        <state relative-caret-position="-5230">
+          <caret line="158" column="9" lean-forward="false" selection-start-line="158" selection-start-column="9" selection-end-line="158" selection-end-column="9" />
           <folding>
-            <element signature="e#1#10#0" expanded="true" />
-            <element signature="e#895#944#0" expanded="false" />
-            <element signature="e#993#1039#0" expanded="false" />
-            <element signature="e#1084#1124#0" expanded="false" />
-            <element signature="e#1167#1202#0" expanded="false" />
-            <element signature="e#1248#1299#0" expanded="false" />
-            <element signature="e#1427#1465#0" expanded="false" />
-            <element signature="e#1905#2297#0" expanded="false" />
+            <element signature="e#0#16#0" expanded="true" />
+            <element signature="e#2460#3393#0" expanded="false" />
+            <element signature="e#3541#3728#0" expanded="false" />
+            <element signature="e#13516#13949#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/setting.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="20" column="19" lean-forward="false" selection-start-line="20" selection-start-column="19" selection-end-line="20" selection-end-column="19" />
+          <folding>
+            <element signature="e#3#24#0" expanded="true" />
+            <element signature="e#619#663#0" expanded="false" />
+            <element signature="e#792#832#0" expanded="false" />
+            <element signature="e#883#929#0" expanded="false" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/drone_control.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="256">
-          <caret line="413" column="0" lean-forward="false" selection-start-line="413" selection-start-column="0" selection-end-line="413" selection-end-column="0" />
+        <state relative-caret-position="346">
+          <caret line="890" column="35" lean-forward="false" selection-start-line="890" selection-start-column="35" selection-end-line="890" selection-end-column="35" />
           <folding>
             <element signature="e#49#66#0" expanded="true" />
             <element signature="e#20565#20748#0" expanded="false" />
@@ -752,29 +759,12 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vehicle.py">
+    <entry file="file://$PROJECT_DIR$/report.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="272">
-          <caret line="266" column="31" lean-forward="false" selection-start-line="266" selection-start-column="31" selection-end-line="266" selection-end-column="31" />
+          <caret line="25" column="34" lean-forward="true" selection-start-line="25" selection-start-column="34" selection-end-line="25" selection-end-column="34" />
           <folding>
-            <element signature="e#0#16#0" expanded="true" />
-            <element signature="e#2460#3393#0" expanded="false" />
-            <element signature="e#3541#3728#0" expanded="false" />
-            <element signature="e#13436#13869#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/setting.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="392">
-          <caret line="31" column="24" lean-forward="true" selection-start-line="31" selection-start-column="24" selection-end-line="31" selection-end-column="24" />
-          <folding>
-            <element signature="e#3#24#0" expanded="true" />
-            <element signature="e#619#663#0" expanded="false" />
-            <element signature="e#701#740#0" expanded="false" />
-            <element signature="e#788#828#0" expanded="false" />
-            <element signature="e#879#925#0" expanded="false" />
+            <element signature="e#1#10#0" expanded="true" />
           </folding>
         </state>
       </provider>

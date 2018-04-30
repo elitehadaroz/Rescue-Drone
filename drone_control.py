@@ -748,7 +748,7 @@ class Gui:
         try:
             self.socket_video.bind((host, port))
             print 'Socket bind complete'
-            self.socket_video.listen(15)
+            self.socket_video.listen(20)
             print 'Socket now listening'
             conn, addr = self.socket_video.accept()
             conn.setblocking(1)
@@ -920,6 +920,7 @@ class Gui:
             if self.drone_vehicle.is_armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
                 start=None
                 #self.time_air_info.config(text="00:00:00")
+                print("hellooooooooooo worlddddddddddddddddddddddd")
                 end_mission =  time.strftime("%H:%M:%S")
                 self.repo.set_end_mission(end_mission)
                 self.repo.set_air_time(ck)

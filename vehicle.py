@@ -155,8 +155,8 @@ class DroneControl:
 
         """need to write function that send gps to server!!!!!!"""
         self.gui.get_image = True  # get picture of person detected
-        info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
-        self.report.set_csv_on_report(info)
+        #info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
+        #self.report.set_csv_on_report(info)
         self.drone_vehicle.rtl_mode()
         self.vehicle.flush()
     def send_gps_and_stay(self):
@@ -213,7 +213,8 @@ class DroneControl:
                         self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
-                        self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_speed
+                        self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_speed()
+                        self.report.set_top_speed(self.setting.get_speed())
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.vehicle.flush()
                         self.read_waypoint_live()
@@ -308,6 +309,7 @@ class DroneControl:
     def arm_and_takeoff(self, target_altitude):  # Arms vehicle and fly to target_altitude.
         #self.gui.show_msg_monitor(">> Drone takeoff to " + target_altitude + "meter altitude...", "msg")
         if self.vehicle.armed is False:
+            self.report.create_folder()
             self.gui.show_msg_monitor(">> Pre-arm checks", "msg")
             # Don't try to arm until autopilot is ready
             while not self.vehicle.is_armable:
@@ -335,6 +337,7 @@ class DroneControl:
                 # Break and return from function just below target altitude.
                 if self.vehicle.location.global_relative_frame.alt >= target_altitude * 0.95:
                     self.gui.show_msg_monitor(">> Reached target altitude", "success")
+                    self.report.set_max_alt(target_altitude)
                     break
                 time.sleep(1)
         else:
