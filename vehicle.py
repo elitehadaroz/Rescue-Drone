@@ -10,9 +10,10 @@ import math
 import os
 
 class DroneControl:
-    def __init__(self, gui_obj,repo_obj):
+    def __init__(self, gui_obj,repo_obj,setting_obj):
         self.mavlink_connected = False
         self.gui = gui_obj
+        self.setting = setting_obj
         self.report = repo_obj
         self.mavlink_time_out = False
         self.mavlink_proc=None  #this proc start the mavProxy for real drone
@@ -209,10 +210,10 @@ class DroneControl:
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
                         #self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
-                        self.arm_and_takeoff(20) #start takeoff
+                        self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
-                        self.vehicle.parameters['WPNAV_SPEED'] = 200
+                        self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_speed
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.vehicle.flush()
                         self.read_waypoint_live()

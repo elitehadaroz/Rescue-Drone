@@ -410,7 +410,7 @@ class Gui:
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
         self.repo = report.Report()
         self.setting = setting.Setting(master)
-        self.drone_vehicle = vehicle.DroneControl(self,self.repo)
+        self.drone_vehicle = vehicle.DroneControl(self,self.repo,self.setting)
 
         self.drone_control = None
         self.video_window = None
