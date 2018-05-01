@@ -103,6 +103,7 @@ class DroneControl:
         self.vehicle.flush()
     def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
         self.vehicle.simple_goto(self.__home_loc)
+        time.sleep(15)
         self.vehicle.mode = VehicleMode("RTL")
         self.gui.show_msg_monitor(">> RTL mode activated", "msg")
         self.vehicle.flush()
@@ -206,7 +207,7 @@ class DroneControl:
                         for cmd in missionlist:
                             self.command_mission.add(cmd)
                         self.command_mission.upload()
-                        print(len(missionlist))
+
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
                         #self.gui.show_msg_monitor(">> AUTO mode activated", "msg")
@@ -466,11 +467,13 @@ class DroneControl:
                 #print("after msg show")
                 self.__person_location = self.vehicle.location.global_relative_frame
                 self.report.set_time_detection(time.strftime("%H:%M:%S"))
+                self.gui.get_image_function()
+                print("i get a piccccccc")
                 while self.vehicle.groundspeed > 1: # wait the drone stop for more accuracy location
+                    print("groaund speedd issssss "+ self.vehicle.groundspeed)
                     time.sleep(1)
-                self.gui.get_image()
                 self.__person_location = self.vehicle.location.global_relative_frame
-                self.gui.get_image = True  # get picture of person detected
+                #self.gui.get_image = True  # get picture of person detected
 
 
 

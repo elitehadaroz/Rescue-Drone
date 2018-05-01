@@ -619,7 +619,9 @@ class Gui:
         self.drone_vehicle.manual_mode()
 
     def send_rtl_mode(self):
-        self.drone_vehicle.rtl_mode()
+        rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
+        rtl.start()
+        #self.drone_vehicle.rtl_mode()
 
     def allow_deny_button(self,key):
         if key == 'allow':
@@ -902,12 +904,12 @@ class Gui:
         self.repo.set_drone_connect_time(time.strftime("%H:%M:%S"))
 
         while self.drone_vehicle.drone_connected:
-            if self.drone_vehicle.is_armed:
+            if self.drone_vehicle.vehicle.armed:
                 if start is None:
                     start = time.time()
                     self.repo.set_start_mission(time.strftime("%H:%M:%S"))
 
-            if self.drone_vehicle.is_armed and start is not None:
+            if self.drone_vehicle.vehicle.armed and start is not None:
                 second = int((time.time() - start))
                 if second == 60:
                     minu += 1
@@ -916,9 +918,9 @@ class Gui:
                     hour += 1
                     minu = 0
             ck = format(hour, '02') + ":" + format(minu, '02') + ":" + format(second, '02')
-
-            if self.drone_vehicle.is_armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
-                start=None
+            #if self.drone_vehicle.vehicle.armed is False:
+            if self.drone_vehicle.vehicle.armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
+                start = None
                 #self.time_air_info.config(text="00:00:00")
                 print("hellooooooooooo worlddddddddddddddddddddddd")
                 end_mission =  time.strftime("%H:%M:%S")
@@ -960,7 +962,7 @@ class Gui:
                 print("r pressed >> Set the vehicle to RTL")
                 self.drone_vehicle.arm_and_takeoff(20)  # start takeoff
         """
-        if self.keyboard_control_bool.get() is True and self.drone_vehicle.is_armed is True:
+        if self.keyboard_control_bool.get() is True and self.drone_vehicle.vehicle.armed is True:
             if event.char == event.keysym:  # -- standard keys
                 if event.keysym == 's':
                     print("down")
