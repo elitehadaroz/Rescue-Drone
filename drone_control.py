@@ -955,7 +955,7 @@ class Gui:
 
 
     def key(self,event):
-        gnd_speed = 2  # [m/s]
+        gnd_speed = self.setting.get_manu_speed()  # [m/s]
         """
         if event.char == event.keysym:  # -- standard keys
             if event.keysym == 'r':

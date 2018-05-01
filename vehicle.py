@@ -214,8 +214,8 @@ class DroneControl:
                         self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
 
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
-                        self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_speed()
-                        self.report.set_top_speed(self.setting.get_speed())
+                        self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_auto_speed()
+                        self.report.set_top_speed(self.setting.get_auto_speed())
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.vehicle.flush()
                         self.read_waypoint_live()
@@ -249,11 +249,10 @@ class DroneControl:
             self.gui.show_msg_monitor(">> Please wait until the drone will connect", "msg")
 
     def setting_waypoint_mission(self):     #the function read all the waypoint and edit values, and insert rtl mode to end of mission
-
-
-
         missionlist = []
         for cmd in self.command_mission:
+            print(cmd)
+            cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
             missionlist.append(cmd)
 
 
@@ -461,10 +460,11 @@ class DroneControl:
             if self.drone_connected and self.vehicle.mode.name == 'AUTO':
                 self.gui.show_msg_monitor(">> PERSON DETECTED !!", 'person')
                 self.manual_mode()
+                #self.vehicle.mode = VehicleMode("LOITER")
+                #self.vehicle.parameters['THR_MID'] = 1500
                 #self.stabilize_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
-                #print("after msg show")
                 self.__person_location = self.vehicle.location.global_relative_frame
                 self.report.set_time_detection(time.strftime("%H:%M:%S"))
                 self.gui.get_image_function()

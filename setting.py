@@ -9,7 +9,7 @@ class Setting:
 
         def __init__(self,master):
             self.menu_widget = Menu(master)
-            self.__setting = {'set altitude(meter)': 7, 'set speed(c\s)':200, 'set num of cell':6, 'set min volt per cell':3.65}
+            self.__setting = {'set altitude(meter)': 7, 'set AUTO speed(c\s)':200,'set MANU speed(m\s)':1, 'set num of cell':6, 'set min volt per cell':3.65}
 
             self.menu_widget.add_cascade(label="setting", command=lambda: self.start_window_by_thread("show setting"))
             self.menu_widget.add_cascade(label="upload mission", command=lambda: self.start_window_by_thread("upload mission"))
@@ -17,8 +17,10 @@ class Setting:
 
         def get_altitude(self):
             return self.__setting['set altitude(meter)']
-        def get_speed(self):
-            return self.__setting['set speed(c\s)']
+        def get_auto_speed(self):
+            return self.__setting['set AUTO speed(c\s)']
+        def get_manu_speed(self):
+            return self.__setting['set MANU speed(m\s)']
         def get_num_of_cell(self):
             return self.__setting['set num of cell']
         def get_min_v_per_cell(self):
@@ -28,17 +30,17 @@ class Setting:
 
         def show_setting(self):
             win = Toplevel()
-            win.geometry("200x300")
+            win.geometry("180x300")
             entries = []
             row = 0
             for key in self.__setting.keys():
-                v = v = IntVar()
+                v = IntVar()
                 v.set(self.__setting[key])
-                lab = Label(win, width=15, text=key+": ", anchor='w')
+                lab = Label(win, width=15, text=key + ": ", anchor='w')
                 ent = Entry(win,width=7,textvariable=v)
 
-                lab.grid(row = row ,column = 0,sticky = W)
-                ent.grid(row = row,column = 1,sticky = E)
+                lab.grid(row = row ,column = 0,sticky = W )
+                ent.grid(row = row,column = 2,padx=10,pady=5,sticky = E)
                 entries.append((key, ent))
                 row += 1
 
@@ -50,7 +52,6 @@ class Setting:
             for entry in entries:
                 if p.match(entry[1].get()):
                     self.__setting[entry[0]] = entry[1].get()
-            print( type(self.__setting['set speed(c\s)']))
             win.destroy()
 
         def upload_mission(self):
@@ -64,6 +65,7 @@ class Setting:
             # quit child window and return to root window
             # the button is optional here, simply use the corner x of the child window
             Button(win, text='OK', command=win.destroy).pack()
+
         def start_window_by_thread(self,function):
             if function == 'show setting':
                 open_window = threading.Thread(name='open_setting_window', target= self.show_setting)
