@@ -32,7 +32,8 @@ class DroneControl:
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
-        mav_proxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+        mav_proxy = 'mavproxy.py --master="'+self.setting.get_usb_com()+'" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+        print(mav_proxy)
         # droneKitSitl ='127.0.0.1:14549'
         self.mavlink_proc = subprocess.Popen(mav_proxy, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
 
@@ -83,7 +84,8 @@ class DroneControl:
             time.sleep(1)
 
     def drone_disconnect(self):
-        self.vehicle.close()
+        if self.vehicle is not None:
+            self.vehicle.close()
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
         self.mavlink_time_out = True  # reset the timer to connection
         self.cam_connect = False

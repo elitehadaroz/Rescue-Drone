@@ -13,7 +13,7 @@ class Setting:
             self.__missionlist = None
             self.__setting = {'set altitude(meter)': 7, 'set AUTO speed(c\s)': 200, 'set MANU speed(m\s)': 1,
                               'set num of cell': 6, 'set min volt per cell': 3.65}
-
+            self.__usb_com = "COM4"
 
             self.start_menu(master)
 
@@ -47,30 +47,38 @@ class Setting:
             return self.__missionlist
         else:
             return None
+    def get_usb_com(self):
+        return self.__usb_com
     def show_setting(self):
             win = Toplevel()
-            win.geometry("180x300")
             entries = []
             row = 0
             for key in self.__setting.keys():
                 v = IntVar()
                 v.set(self.__setting[key])
-                lab = Label(win, width=15, text=key + ": ", anchor='w')
-                ent = Entry(win,width=7,textvariable=v)
+                lab = Label(win, width=20, text=key + ": ", anchor='w')
+                ent = Entry(win, width=7,textvariable=v)
 
-                lab.grid(row = row ,column = 0,sticky = W )
+                lab.grid(row = row ,columnspan=2,column = 0,padx=10,sticky = W + E )
                 ent.grid(row = row,column = 2,padx=10,pady=5,sticky = E)
                 entries.append((key, ent))
                 row += 1
 
-            button_save = Button(win, text='Save', command=lambda: self.save_setting(win,entries))
-            button_save.grid(row = row+1)
+            v = IntVar()
+            v.set(self.__usb_com)
+            lab_usb = Label(win, width=20, text="drone connect usb COM: ", anchor='w')
+            usb_com = Entry(win, width=7, textvariable=v)
+            lab_usb.grid(row=row,columnspan=2, column=0,padx=10, sticky=W)
+            usb_com.grid(row=row, column=2, padx=10, pady=5, sticky=E)
+            button_save = Button(win, text='Save', command=lambda: self.save_setting(win,entries,usb_com))
+            button_save.grid(row = row+1,column = 1)
 
-    def save_setting(self,win,entries):
+    def save_setting(self,win,entries,usb_com):
             p = re.compile('\d+(\.\d+)?')
             for entry in entries:
                 if p.match(entry[1].get()):
                     self.__setting[entry[0]] = entry[1].get()
+            self.__usb_com = usb_com.get()
             win.destroy()
 
     def read_mission(self,q):

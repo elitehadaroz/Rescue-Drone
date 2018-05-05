@@ -66,6 +66,7 @@ class Gui:
     def __init__(self, master):
         master.geometry("950x650")
         master.title("Rescue Drone")
+        master.iconbitmap(r"media\rd.ico")
         self.detection_obj=None #this Obj its person detection class
         self.socket_video=None  #the socket_video assigned to receive video from person_detection file.
         self.message_box_pop = False
@@ -309,6 +310,7 @@ class Gui:
         else:
             if self.drone_is_connect is False:
                 if self.sitl_is_connect is False:
+                    print(self.setting.get_usb_com())
                     self.button_connect_sitl.config(text="Disconnect\nSITL",bg='#5CB300')
                     self.button_connect.config(state=DISABLED,bg='white')
                     self.sitl_is_connect = True
