@@ -23,7 +23,7 @@ class DroneControl:
         self.drone_connected=False
         self.person_is_detect = False
         self.cam_connect = True
-        self.is_armed = False
+        #self.is_armed = False
         self.command_mission = None
         self.auto_mode_activated = False
         self.__home_loc = None
@@ -102,7 +102,9 @@ class DroneControl:
         self.gui.show_msg_monitor(">> GUIDED mode activated", "msg")
         self.vehicle.flush()
     def rtl_mode(self):         #set RTL mode,the drone now in RTL mode
+        self.manual_mode()
         self.vehicle.simple_goto(self.__home_loc)
+        self.vehicle.flush()
         time.sleep(15)
         self.vehicle.mode = VehicleMode("RTL")
         self.gui.show_msg_monitor(">> RTL mode activated", "msg")
@@ -113,21 +115,7 @@ class DroneControl:
         self.vehicle.flush()
 
     def set_velocity_body(self, vx, vy, vz,yaw,command=''):
-
-        """ Remember: vz is positive downward!!!
-            http://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html
-
-            Bitmask to indicate which dimensions should be ignored by the vehicle
-            (a value of 0b0000000000000000 or 0b0000001000000000 indicates that
-            none of the setpoint dimensions should be ignored). Mapping:
-            bit 1: x,  bit 2: y,  bit 3: z,
-            bit 4: vx, bit 5: vy, bit 6: vz,
-            bit 7: ax, bit 8: ay, bit 9:
-
-
-            """
         if command == 'yaw':
-            print("i in yawwwwwwwwwwwwwwwwwwwwwwwww")
             msg = self.vehicle.message_factory.command_long_encode(
                 0, 0,  # target system, target component
                 mavutil.mavlink.MAV_CMD_CONDITION_YAW,  # command
@@ -169,8 +157,12 @@ class DroneControl:
         return self.__person_location
 
 
-    def read_mission(self):     # after the user insert track on mission planner,this function read the track and save is on command_mission
+    def download_mission(self):     # after the user insert track on mission planner,this function read the track and save is on command_mission
         if self.command_mission is None :
+            self.command_mission = self.vehicle.commands
+            self.command_mission.download()
+            self.command_mission.wait_ready()
+            self.report.set_num_waypoint(self.command_mission.count)
             while not self.vehicle.home_location:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
@@ -191,22 +183,42 @@ class DroneControl:
                     if self.command_mission.count == 0:
                         self.command_mission = None
 
+    def upload_mission(self):
+        missionlist = self.setting.get_missionlist()
+        self.command_mission = self.vehicle.commands
+        self.command_mission.clear()
+        # Add new mission to vehicle
+        for command in missionlist:
+            self.command_mission.add(command)
+        self.gui.show_msg_monitor(">> Upload mission success", "success")
+        self.vehicle.commands.upload()
+
+    def clean_missions(self):
+        if self.command_mission is not None:
+            self.command_mission.clear()
+            self.command_mission = None
+        self.gui.show_msg_monitor(">> Clean mission ", "success")
     def auto_mode(self):        #set AUTO mode,the drone now in AUTO mode
         if self.drone_connected is True:
             if self.vehicle.mode.name is not 'AUTO':
                 if self.auto_mode_activated is False:
                     if self.command_mission is None:
-                        self.read_mission()
+                        if self.setting.get_missionlist() is not None:
+                            self.upload_mission()
+                            print("upload mission")
+                        else:
+                            print("download mission")
+                            self.download_mission()
                     if self.command_mission is not None:
-                        missionlist = []
-                        for cmd in self.command_mission:
-                            missionlist.append(cmd)
+                        #missionlist = []
+                        #for cmd in self.command_mission:
+                            #missionlist.append(cmd)
 
-                        self.command_mission.clear()
+                        #self.command_mission.clear()
 
-                        for cmd in missionlist:
-                            self.command_mission.add(cmd)
-                        self.command_mission.upload()
+                        #for cmd in missionlist:
+                            #self.command_mission.add(cmd)
+                        #self.command_mission.upload()
 
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request
@@ -219,21 +231,19 @@ class DroneControl:
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.vehicle.flush()
                         self.read_waypoint_live()
-                        print("point 1")
+
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
                         while self.vehicle.armed:
                             time.sleep(1)
-                        print("point 2")
-                        self.is_armed = False
-                        print("point 3")
-                        while self.vehicle.armed:
-                            time.sleep(1)
-                            print("wait to disarmed")
+
+                        #self.is_armed = False
+
+
                         # Disarm vehicle
 
                         #while self.vehicle.armed:
                         #    time.sleep(1)
-                        print("heloooooooooooooooooooooooooooooooooooooooooooooooooooo")
+
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
                         self.stabilize_mode()
@@ -257,8 +267,8 @@ class DroneControl:
 
 
         home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
-                       mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.vehicle.home_location.lat,
-                       self.vehicle.home_location.lon, 20)
+                       mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.__home_loc.lat,
+                       self.__home_loc.lon, 20)
 
         rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                       mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
@@ -283,15 +293,6 @@ class DroneControl:
                 self.gui.show_msg_monitor(">> " + point_num , "msg")
                 nextwaypoint = self.vehicle.commands.next
             time.sleep(1)
-
-        print("im exit frommmmmmmmmm read waypoint")
-
-        """
-        # wait for the vehicle to land
-        while self.command_mission.next > 0:
-            time.sleep(1)
-        return True
-        """
 
     def home_location(self,aLocation, aCurrent=1):
         msg = self.vehicle.message_factory.command_long_encode(
@@ -326,7 +327,7 @@ class DroneControl:
             while not self.vehicle.armed:
                 time.sleep(1)
             self.gui.show_msg_monitor(">> ARMING MOTORS", "success")
-            self.is_armed = True
+            #self.is_armed = True
             self.gui.show_msg_monitor(">> take off...", "msg")
             self.vehicle.simple_takeoff(target_altitude)  # Take off to target altitude
 
@@ -394,6 +395,7 @@ class DroneControl:
         self.drone_connected=True
 
         self.__home_loc = self.vehicle.location.global_relative_frame
+
         self.gui.show_msg_monitor(">> Drone is connected", "success")
         print"the drone is connected"
         """
@@ -435,7 +437,6 @@ class DroneControl:
     """
 
     def sitl_disconnect(self):
-        print('im in sitl disconnected')
         self.cam_connect = False
         self.drone_connected = False
         #self.dronekit_process.kill()
@@ -453,7 +454,7 @@ class DroneControl:
             print(pid_mavproxy_sitl_proc)
             subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
 
-
+        self.gui.show_msg_monitor(">> Sitl is disconnected", "msg")
 
     def person_detected(self):
         if not self.person_is_detect:

@@ -92,7 +92,7 @@ def load_image_into_numpy_array(image):
 # Size, in inches, of the output images.
 #IMAGE_SIZE = (12, 8)
 clientsocket=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-clientsocket.connect(('localhost',8089))
+clientsocket.connect(('localhost',8080))
 #pickle.dump(protocol=2)
 def main():
   with detection_graph.as_default():
