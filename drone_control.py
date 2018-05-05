@@ -122,12 +122,12 @@ class Gui:
         self.drone_control.grid(row=0, column=1, columnspan=5, sticky=W + N + E + S)
 
         """button connect to drone"""
-        self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,
+        self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,bg='#C70002',fg='WHITE',
                                      command=lambda: self.switch_on_off(master, 'drone'))
         self.button_connect.grid(row=0, column=1, sticky=W + N, pady=4)
 
         """button connect to SITL"""
-        self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,
+        self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,bg='#C70002',fg='WHITE',#5CB300
                                           command=lambda: self.switch_on_off(master, 'sitl'))
         self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
 
@@ -248,7 +248,7 @@ class Gui:
             self.move_left.config(state=NORMAL)
 
         elif self.keyboard_control_bool.get() is False:
-            print("helllloooooooooooo")
+
             self.move_up.config(state=DISABLED)
             self.move_dwon.config(state=DISABLED)
             self.spin_right.config(state=DISABLED)
@@ -277,28 +277,28 @@ class Gui:
 
     def allow_deny_button(self,key):
         if key == 'allow':
-            self.image_capture.config(state=NORMAL)
-            self.button_auto.config(state=NORMAL)
-            self.button_manual.config(state=NORMAL)
-            self.button_rtl.config(state=NORMAL)
+            self.image_capture.config(state=NORMAL,bg='#E38608',fg='white')
+            self.button_auto.config(state=NORMAL,bg='#0B407C',fg='white')
+            self.button_manual.config(state=NORMAL,bg='#0B407C',fg='white')
+            self.button_rtl.config(state=NORMAL,bg='#0B407C',fg='white')
         elif key == 'deny':
-            self.image_capture.config(state=DISABLED)
-            self.button_auto.config(state=DISABLED)
-            self.button_manual.config(state=DISABLED)
-            self.button_rtl.config(state=DISABLED)
+            self.image_capture.config(state=DISABLED,bg='white')
+            self.button_auto.config(state=DISABLED,bg='white')
+            self.button_manual.config(state=DISABLED,bg='white')
+            self.button_rtl.config(state=DISABLED,bg='white')
 
 
     def switch_on_off(self, master, key):
         if key == 'drone':
             if self.sitl_is_connect is False:
                 if self.drone_is_connect is False:
-                    self.button_connect.config(text="Disconnect")
-                    self.button_connect_sitl.config(state=DISABLED)
+                    self.button_connect.config(text="Disconnect",bg='#5CB300')
+                    self.button_connect_sitl.config(state=DISABLED,bg='white')
                     self.drone_is_connect = True
                     self.drone_connect(key, master)
                 else:
-                    self.button_connect.config(text="Connect")
-                    self.button_connect_sitl.config(state=NORMAL)
+                    self.button_connect.config(text="Connect",bg='#C70002')
+                    self.button_connect_sitl.config(state=NORMAL,bg='#C70002')
                     self.drone_is_connect = False
                     self.allow_deny_button('deny')
                     disconnect_thread = threading.Thread(name='disconnect from drone',
@@ -309,13 +309,13 @@ class Gui:
         else:
             if self.drone_is_connect is False:
                 if self.sitl_is_connect is False:
-                    self.button_connect_sitl.config(text="Disconnect\nSITL")
-                    self.button_connect.config(state=DISABLED)
+                    self.button_connect_sitl.config(text="Disconnect\nSITL",bg='#5CB300')
+                    self.button_connect.config(state=DISABLED,bg='white')
                     self.sitl_is_connect = True
                     self.drone_connect(key, master)
                 else:
-                    self.button_connect_sitl.config(text="ConnectSITL")
-                    self.button_connect.config(state=NORMAL)
+                    self.button_connect_sitl.config(text="ConnectSITL",bg='#C70002')
+                    self.button_connect.config(state=NORMAL,bg='#C70002')
                     self.sitl_is_connect = False
                     self.allow_deny_button('deny')
                     disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
@@ -475,7 +475,7 @@ class Gui:
             self.message_box_pop = True
 
             if key == "person detection":
-                text_message = "A person has been detected !\n do you want send GPS location and RTL ,or continue search ? "
+                text_message = "A person has been detected !\n do you want send GPS location and RTL?\n or continue search ? "
                 yes_button = "send GPS and RTL"
                 no_button = "continue to search"
                 middle_button ="send GPS and stay"

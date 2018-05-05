@@ -1,6 +1,4 @@
 
-
-
 from Tkinter import *
 import threading
 import re
@@ -23,15 +21,13 @@ class Setting:
         self.menu_widget = Menu(master)
         self.settings_drone = Menu(self.menu_widget,tearoff=0)
         self.menu_widget.add_cascade(label="drone setting",command=lambda: self.start_window_by_thread("show setting"))
-        #self.settings_drone.add_command(label="setting", command=lambda: self.start_window_by_thread("show setting"))
 
         self.setting_mission = Menu(self.menu_widget,tearoff=0)
         self.menu_widget.add_cascade(label="mission settings", menu = self.setting_mission)
-        #self.setting_mission.add_cascade(label="clean mission", menu = self.setting_mission)
+
         self.setting_mission.add_command(label="upload mission",command=lambda: self.start_window_by_thread("upload mission"))
         self.setting_mission.add_command(label="clean mission",command=self.clean_mission)
-        #master.config(menu=self.menu_widget)
-        #master.config(menu = fileMenu)
+
         master.config(menu=self.menu_widget)
 
     def get_altitude(self):
