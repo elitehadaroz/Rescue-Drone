@@ -29,16 +29,15 @@ class PersonDetection:
         self.gui = gui_obj
         self.drone_vehicle = drone_vehicle_obj
         self.listener = True
-        print ('Socket created')
-        print ('detection process')
+        self.show_msg_monitor(">> Start detection process", 'msg')
         person_detection = "py person_detection.py"  # launch the person_detection script using bash
         self.person_detection_process = subprocess.Popen(person_detection, shell=True, stdout=subprocess.PIPE)
 
-        # msg thread
-
+        # msg thread,if the camera detection person msg send to drone_vehicle.person_detected()
         self.person_detection_msg = threading.Thread(name='person_detection_msg', target=self.detection_msg)
         self.person_detection_msg.start()
 
+    # close the process that start the person_detection.py file.call from GUI.disconnect function.
     def close_detection(self):
         self.listener = False
         self.person_detection_msg.join()

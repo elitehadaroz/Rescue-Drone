@@ -6,7 +6,7 @@ import tkFileDialog
 from dronekit import Command
 from multiprocessing import Process, Queue
 
-
+# the class holding values to drone,like speed altitude etc.
 class Setting:
     def __init__(self,master,gui):
             self.__gui = gui
@@ -17,11 +17,16 @@ class Setting:
 
             self.start_menu(master)
 
+    # create the nav bar menu
     def start_menu(self,master):
+
         self.menu_widget = Menu(master)
+
+        #the menu drone setting
         self.settings_drone = Menu(self.menu_widget,tearoff=0)
         self.menu_widget.add_cascade(label="drone setting",command=lambda: self.start_window_by_thread("show setting"))
 
+        #the menu mission settings
         self.setting_mission = Menu(self.menu_widget,tearoff=0)
         self.menu_widget.add_cascade(label="mission settings", menu = self.setting_mission)
 
@@ -73,6 +78,7 @@ class Setting:
             button_save = Button(win, text='Save', command=lambda: self.save_setting(win,entries,usb_com))
             button_save.grid(row = row+1,column = 1)
 
+    #this function save the values in the self.__setting{}
     def save_setting(self,win,entries,usb_com):
             p = re.compile('\d+(\.\d+)?')
             for entry in entries:
@@ -81,6 +87,7 @@ class Setting:
             self.__usb_com = usb_com.get()
             win.destroy()
 
+    # the read_mission function read a mission from file.waypoint and insert the waypoint in self.__missionlist
     def read_mission(self,q):
             filename = tkFileDialog.askopenfilename(filetypes=[("waypoint mission",'*.waypoints'),('All files','*.*')])
             print ("the filr name is ",filename)
@@ -116,6 +123,7 @@ class Setting:
         self.__gui.clean_missions()
         self.__missionlist = None
 
+    #the function start_window_by_thread call from start_menu and open window menu without stock the main window.
     def start_window_by_thread(self,function_name):
             if function_name == 'show setting':
                 open_window = threading.Thread(name='open_setting_window', target=self.show_setting)
