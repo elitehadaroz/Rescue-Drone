@@ -338,7 +338,7 @@ class Gui:
             connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl)
             connecting_sitl_thread.start()
 
-        get_info_drone = threading.Thread(name='send info',target=self.update_parm_drone)
+        get_info_drone = threading.Thread(name='send info',target=self.get_parm_drone)
         get_info_drone.start()
 
         person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
@@ -542,7 +542,7 @@ class Gui:
             check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
             check_alarm_operation_again.start()
 
-    def update_parm_drone(self):
+    def get_parm_drone(self):
 
         while not self.drone_vehicle.drone_connected:
             time.sleep(1)

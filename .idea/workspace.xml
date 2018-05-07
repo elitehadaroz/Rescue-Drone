@@ -4,7 +4,7 @@
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
-      <change beforePath="$PROJECT_DIR$/setting.py" afterPath="$PROJECT_DIR$/setting.py" />
+      <change beforePath="$PROJECT_DIR$/vehicle.py" afterPath="$PROJECT_DIR$/vehicle.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -18,24 +18,24 @@
       <file leaf-file-name="drone_control.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/drone_control.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="161">
-              <caret line="39" column="98" lean-forward="true" selection-start-line="39" selection-start-column="98" selection-end-line="39" selection-end-column="98" />
+            <state relative-caret-position="3546">
+              <caret line="544" column="29" lean-forward="true" selection-start-line="544" selection-start-column="29" selection-end-line="544" selection-end-column="29" />
               <folding>
                 <element signature="e#49#66#0" expanded="true" />
                 <element signature="e#4259#4442#0" expanded="false" />
                 <element signature="e#6670#7770#0" expanded="false" />
                 <element signature="e#7830#12168#0" expanded="false" />
-                <element signature="e#18300#18715#0" expanded="false" />
-                <element signature="e#18762#19219#0" expanded="false" />
+                <element signature="e#18297#18712#0" expanded="false" />
+                <element signature="e#18759#19216#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="setting.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="setting.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/setting.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
+            <state relative-caret-position="160">
               <caret line="53" column="23" lean-forward="true" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
               <folding>
                 <element signature="e#1#22#0" expanded="true" />
@@ -61,19 +61,41 @@
       <file leaf-file-name="vehicle.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/vehicle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="153">
-              <caret line="9" column="9" lean-forward="true" selection-start-line="9" selection-start-column="9" selection-end-line="9" selection-end-column="9" />
+            <state relative-caret-position="246">
+              <caret line="383" column="36" lean-forward="true" selection-start-line="383" selection-start-column="36" selection-end-line="383" selection-end-column="36" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
-                <element signature="e#2512#3445#0" expanded="false" />
-                <element signature="e#3593#3780#0" expanded="false" />
-                <element signature="e#13753#14186#0" expanded="false" />
+                <element signature="e#1167#2356#0" expanded="false" />
+                <element signature="e#2455#3112#0" expanded="false" />
+                <element signature="e#3340#3527#0" expanded="false" />
+                <element signature="e#3616#4145#0" expanded="false" />
+                <element signature="e#4233#4372#0" expanded="false" />
+                <element signature="e#4451#4713#0" expanded="false" />
+                <element signature="e#4810#4955#0" expanded="false" />
+                <element signature="e#5147#6243#0" expanded="false" />
+                <element signature="e#6285#6613#0" expanded="false" />
+                <element signature="e#6656#6770#0" expanded="false" />
+                <element signature="e#6857#6886#0" expanded="false" />
+                <element signature="e#7070#8421#0" expanded="false" />
+                <element signature="e#8630#9072#0" expanded="false" />
+                <element signature="e#9146#9329#0" expanded="false" />
+                <element signature="e#9513#11552#0" expanded="false" />
+                <element signature="e#11743#12684#0" expanded="false" />
+                <element signature="e#12839#13271#0" expanded="false" />
+                <element signature="e#13332#13765#0" expanded="false" />
+                <element signature="e#13924#15605#0" expanded="false" />
+                <element signature="e#15823#17850#0" expanded="false" />
+                <element signature="e#18889#19401#1" expanded="false" />
+                <element signature="e#19567#20312#0" expanded="false" />
+                <element signature="e#20684#21428#0" expanded="false" />
+                <element signature="e#22017#22366#0" expanded="false" />
+                <element signature="e#22480#22633#0" expanded="false" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="person_detection.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="person_detection.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/person_detection.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="124">
@@ -106,16 +128,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>act</find>
-      <find>read_waypoint_live</find>
-      <find>AUTO</find>
-      <find>message_box</find>
-      <find>get_distance_metres</find>
-      <find>show_msg_monitor</find>
-      <find>show_msg_user</find>
-      <find>connecting_drone</find>
-      <find>drone_disconnect</find>
-      <find>connec</find>
       <find>bool</find>
       <find>set_max_alt</find>
       <find>report</find>
@@ -128,14 +140,24 @@
       <find>get_image</find>
       <find>setting_waypoint_mission</find>
       <find>create_report_mission</find>
-      <find>update_parm_drone</find>
       <find>waypnumber ofoint</find>
       <find>cam_connect</find>
       <find>video_window</find>
       <find>allow_deny_button</find>
       <find>cam</find>
       <find>is_armed</find>
+      <find>mavlink_connected</find>
+      <find>mavlink_proc</find>
+      <find>mavProxy_sitl_proc</find>
+      <find>drone_connected</find>
+      <find>auto_mode_activated</find>
+      <find>missionlist</find>
       <find>close_detection</find>
+      <find>erro</find>
+      <find>check_alarm_operation</find>
+      <find>home_location</find>
+      <find>update_parm_drone</find>
+      <find>print</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -146,9 +168,9 @@
       <list>
         <option value="$PROJECT_DIR$/report.py" />
         <option value="$PROJECT_DIR$/person_detection.py" />
-        <option value="$PROJECT_DIR$/vehicle.py" />
-        <option value="$PROJECT_DIR$/drone_control.py" />
         <option value="$PROJECT_DIR$/setting.py" />
+        <option value="$PROJECT_DIR$/drone_control.py" />
+        <option value="$PROJECT_DIR$/vehicle.py" />
       </list>
     </option>
   </component>
@@ -486,7 +508,14 @@
       <option name="project" value="LOCAL" />
       <updated>1525551334578</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="documentation setting.py">
+      <created>1525697923128</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1525697923128</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="TodoView">
@@ -501,7 +530,7 @@
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
     <layout>
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15625" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.15625" sideWeight="0.5" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32894737" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.29605263" sideWeight="0.50292826" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.375" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -543,7 +572,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="fix disconnected from sitl/drone by thread,now is not got stuck" />
     <MESSAGE value="start create message box" />
     <MESSAGE value="add msg box dynamic when person detected" />
     <MESSAGE value="add indication parameter to indication frame" />
@@ -568,13 +596,15 @@
     <MESSAGE value="add option to load a mission from file waypoint" />
     <MESSAGE value="add color to button" />
     <MESSAGE value="add global COM usb connected" />
-    <option name="LAST_COMMIT_MESSAGE" value="add global COM usb connected" />
+    <MESSAGE value="documentation setting.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="documentation setting.py" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints-dialog>
         <breakpoints-dialog />
       </breakpoints-dialog>
+      <option name="time" value="1" />
     </breakpoint-manager>
     <watches-manager />
   </component>
@@ -588,8 +618,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -600,9 +630,31 @@
           <caret line="300" column="41" lean-forward="false" selection-start-line="300" selection-start-column="40" selection-end-line="300" selection-end-column="41" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
-            <element signature="e#2512#3445#0" expanded="false" />
-            <element signature="e#3593#3780#0" expanded="false" />
-            <element signature="e#13753#14186#0" expanded="false" />
+            <element signature="e#1167#2356#0" expanded="false" />
+            <element signature="e#2455#3112#0" expanded="false" />
+            <element signature="e#3340#3527#0" expanded="false" />
+            <element signature="e#3616#4145#0" expanded="false" />
+            <element signature="e#4233#4372#0" expanded="false" />
+            <element signature="e#4451#4713#0" expanded="false" />
+            <element signature="e#4810#4955#0" expanded="false" />
+            <element signature="e#5147#6243#0" expanded="false" />
+            <element signature="e#6285#6613#0" expanded="false" />
+            <element signature="e#6656#6770#0" expanded="false" />
+            <element signature="e#6857#6886#0" expanded="false" />
+            <element signature="e#7070#8421#0" expanded="false" />
+            <element signature="e#8630#9072#0" expanded="false" />
+            <element signature="e#9146#9329#0" expanded="false" />
+            <element signature="e#9513#11552#0" expanded="false" />
+            <element signature="e#11743#12684#0" expanded="false" />
+            <element signature="e#12839#13271#0" expanded="false" />
+            <element signature="e#13332#13765#0" expanded="false" />
+            <element signature="e#13924#15605#0" expanded="false" />
+            <element signature="e#15823#17850#0" expanded="false" />
+            <element signature="e#18889#19401#1" expanded="false" />
+            <element signature="e#19567#20312#0" expanded="false" />
+            <element signature="e#20684#21428#0" expanded="false" />
+            <element signature="e#22017#22366#0" expanded="false" />
+            <element signature="e#22480#22633#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -626,8 +678,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -641,8 +693,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -656,8 +708,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -671,8 +723,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -686,8 +738,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -701,8 +753,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -716,8 +768,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -731,8 +783,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -746,8 +798,8 @@
             <element signature="e#4259#4442#0" expanded="false" />
             <element signature="e#6670#7770#0" expanded="false" />
             <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -820,45 +872,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/vehicle.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="153">
-          <caret line="9" column="9" lean-forward="true" selection-start-line="9" selection-start-column="9" selection-end-line="9" selection-end-column="9" />
-          <folding>
-            <element signature="e#0#16#0" expanded="true" />
-            <element signature="e#2512#3445#0" expanded="false" />
-            <element signature="e#3593#3780#0" expanded="false" />
-            <element signature="e#13753#14186#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/drone_control.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="161">
-          <caret line="39" column="98" lean-forward="true" selection-start-line="39" selection-start-column="98" selection-end-line="39" selection-end-column="98" />
-          <folding>
-            <element signature="e#49#66#0" expanded="true" />
-            <element signature="e#4259#4442#0" expanded="false" />
-            <element signature="e#6670#7770#0" expanded="false" />
-            <element signature="e#7830#12168#0" expanded="false" />
-            <element signature="e#18300#18715#0" expanded="false" />
-            <element signature="e#18762#19219#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/person_detection.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="124">
-          <caret line="122" column="113" lean-forward="false" selection-start-line="122" selection-start-column="109" selection-end-line="122" selection-end-column="113" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/setting.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
+        <state relative-caret-position="160">
           <caret line="53" column="23" lean-forward="true" selection-start-line="53" selection-start-column="23" selection-end-line="53" selection-end-column="23" />
           <folding>
             <element signature="e#1#22#0" expanded="true" />
@@ -877,6 +893,64 @@
             <element signature="e#5541#5602#0" expanded="false" />
             <element signature="e#5782#6187#0" expanded="false" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/vehicle.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="246">
+          <caret line="383" column="36" lean-forward="true" selection-start-line="383" selection-start-column="36" selection-end-line="383" selection-end-column="36" />
+          <folding>
+            <element signature="e#0#16#0" expanded="true" />
+            <element signature="e#1167#2356#0" expanded="false" />
+            <element signature="e#2455#3112#0" expanded="false" />
+            <element signature="e#3340#3527#0" expanded="false" />
+            <element signature="e#3616#4145#0" expanded="false" />
+            <element signature="e#4233#4372#0" expanded="false" />
+            <element signature="e#4451#4713#0" expanded="false" />
+            <element signature="e#4810#4955#0" expanded="false" />
+            <element signature="e#5147#6243#0" expanded="false" />
+            <element signature="e#6285#6613#0" expanded="false" />
+            <element signature="e#6656#6770#0" expanded="false" />
+            <element signature="e#6857#6886#0" expanded="false" />
+            <element signature="e#7070#8421#0" expanded="false" />
+            <element signature="e#8630#9072#0" expanded="false" />
+            <element signature="e#9146#9329#0" expanded="false" />
+            <element signature="e#9513#11552#0" expanded="false" />
+            <element signature="e#11743#12684#0" expanded="false" />
+            <element signature="e#12839#13271#0" expanded="false" />
+            <element signature="e#13332#13765#0" expanded="false" />
+            <element signature="e#13924#15605#0" expanded="false" />
+            <element signature="e#15823#17850#0" expanded="false" />
+            <element signature="e#18889#19401#1" expanded="false" />
+            <element signature="e#19567#20312#0" expanded="false" />
+            <element signature="e#20684#21428#0" expanded="false" />
+            <element signature="e#22017#22366#0" expanded="false" />
+            <element signature="e#22480#22633#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/drone_control.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="3546">
+          <caret line="544" column="29" lean-forward="true" selection-start-line="544" selection-start-column="29" selection-end-line="544" selection-end-column="29" />
+          <folding>
+            <element signature="e#49#66#0" expanded="true" />
+            <element signature="e#4259#4442#0" expanded="false" />
+            <element signature="e#6670#7770#0" expanded="false" />
+            <element signature="e#7830#12168#0" expanded="false" />
+            <element signature="e#18297#18712#0" expanded="false" />
+            <element signature="e#18759#19216#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/person_detection.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="124">
+          <caret line="122" column="113" lean-forward="false" selection-start-line="122" selection-start-column="109" selection-end-line="122" selection-end-column="113" />
+          <folding />
         </state>
       </provider>
     </entry>
