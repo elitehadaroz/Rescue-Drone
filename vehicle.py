@@ -33,6 +33,7 @@ class DroneControl:
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
         #connect to mavproxy to master usb and split to two udp port
         mav_proxy = 'mavproxy.py --master="'+self.setting.get_usb_com()+'" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+        #mav_proxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
         self.mavlink_proc = subprocess.Popen(mav_proxy, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
 
         time.sleep(1)
@@ -48,6 +49,7 @@ class DroneControl:
             self.connecting_drone('drone')
         else:  # the connected not succeed
             self.cam_connect = False
+            self.mavlink_connected = False
             self.gui.show_msg_monitor(">> error: problem with connect to mavProxy,(120 sec pass)", "error")
 
     #start the listener to mavproxy msg if is connect or not.
@@ -70,7 +72,7 @@ class DroneControl:
         sec = 0
         while self.stop_timer is False:
             sec += 1
-            if sec == 60:
+            if sec == 120:
                 self.mavlink_time_out = True
                 break
             time.sleep(1)
@@ -80,7 +82,7 @@ class DroneControl:
         if self.vehicle is not None:
             self.vehicle.close()
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
-        self.mavlink_time_out = True  # reset the timer to connection
+        self.mavlink_time_out = False  # reset the timer to connection
         self.cam_connect = False
         self.drone_connected = False
         if self.mavlink_proc is not None: #close mavlink process
@@ -310,7 +312,8 @@ class DroneControl:
                 time.sleep(1)
             self.gui.show_msg_monitor(">> ARMING MOTORS", "success")
             #self.is_armed = True
-            self.gui.show_msg_monitor(">> take off to " +target_altitude+" meter ...", "msg")
+            #msg = ">> take off to " + target_altitude + " meter ..."
+            #self.gui.show_msg_monitor(str(msg), "msg")
             self.vehicle.simple_takeoff(target_altitude)  # Take off to target altitude
 
             # Wait until the vehicle reaches a safe height before processing the AUTO mode

@@ -83,7 +83,7 @@ class Setting:
             p = re.compile('\d+(\.\d+)?')
             for entry in entries:
                 if p.match(entry[1].get()):
-                    self.__setting[entry[0]] = entry[1].get()
+                    self.__setting[entry[0]] = float(entry[1].get())
             self.__usb_com = usb_com.get()
             win.destroy()
 

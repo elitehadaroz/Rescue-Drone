@@ -29,7 +29,7 @@ class PersonDetection:
         self.gui = gui_obj
         self.drone_vehicle = drone_vehicle_obj
         self.listener = True
-        self.show_msg_monitor(">> Start detection process", 'msg')
+        self.gui.show_msg_monitor(">> Start detection process", 'msg')
         person_detection = "py person_detection.py"  # launch the person_detection script using bash
         self.person_detection_process = subprocess.Popen(person_detection, shell=True, stdout=subprocess.PIPE)
 
@@ -63,7 +63,7 @@ class PersonDetection:
 
 class Gui:
     def __init__(self, master):
-        master.geometry("950x650")
+        master.geometry("950x690")
         master.title("Rescue Drone")
         master.iconbitmap(r"media\rd.ico")
         self.detection_obj=None #this Obj its person detection class
@@ -73,7 +73,7 @@ class Gui:
         self.repo = report.Report()
         self.setting = setting.Setting(master,self)
         self.drone_vehicle = vehicle.DroneControl(self,self.repo,self.setting)
-
+        self.low_battery = False
         self.drone_control = None
         self.video_window = None
         self.monitor_msg = None
@@ -474,7 +474,6 @@ class Gui:
 
         if not self.message_box_pop:
             self.message_box_pop = True
-
             if key == "person detection":
                 text_message = "A person has been detected !\n do you want send GPS location and RTL?\n or continue search ? "
                 yes_button = "send GPS and RTL"
@@ -493,6 +492,22 @@ class Gui:
 
                 button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
                 button_sound_on_oof.grid(row=1, column=0)
+
+            if key == "low voltage":
+                if  self.low_battery is True:
+                    text_message = "LOW BATTERY !\n low battery voltage, return home.\n  "
+                    yes_button = "return home"
+                    no_button = "continue to search"
+                    msg_detail = {'message': text_message, 'key': key, 'yes_b': yes_button,'no_b': no_button}
+                    self.create_message_box(msg_detail)
+                    sound_bool = BooleanVar()
+
+                    start_alarm = threading.Thread(name="start_the_alarm_low_batt",
+                                                   target=lambda: self.start_alarm(sound_bool))
+                    start_alarm.start()
+
+                    button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
+                    button_sound_on_oof.grid(row=1, column=0)
 
     def create_message_box(self,msg_detail):
         self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
@@ -537,10 +552,29 @@ class Gui:
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "send gps and stay,time:"+time.strftime("%H:%M:%S"))
                 self.drone_vehicle.send_gps_and_stay()
                 print("need write a function here")
-            self.message_box.destroy()
-            self.message_box_pop =False
+            #self.message_box.destroy()
+            #self.message_box_pop =False
             check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
             check_alarm_operation_again.start()
+
+        if key == 'low voltage':
+            if answer == 'yes':
+                rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
+                rtl.start()
+            else:
+                print("continue searce")
+                low_batt_timer = threading.Thread(name="check_low_battery",target=self.timer_low_battery)
+                low_batt_timer.start()
+
+        self.message_box.destroy()
+        self.message_box_pop = False
+
+    def timer_low_battery(self):
+        t = 0
+        while t < 15:
+            t += 1
+            time.sleep(1)
+        self.low_battery = False
 
     def get_parm_drone(self):
 
@@ -557,6 +591,7 @@ class Gui:
         hour = 0
         max_alt = 0
         max_speed = 0
+        min_bat = self.min_battery_voltage()
         self.repo.set_drone_connect_time(time.strftime("%H:%M:%S"))
 
         while self.drone_vehicle.drone_connected:
@@ -578,16 +613,24 @@ class Gui:
             if self.drone_vehicle.vehicle.armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
                 start = None
                 #self.time_air_info.config(text="00:00:00")
-                print("hellooooooooooo worlddddddddddddddddddddddd")
                 end_mission =  time.strftime("%H:%M:%S")
                 self.repo.set_end_mission(end_mission)
+                self.repo.set_max_alt(max_alt)
+                self.repo.set_top_speed(max_speed)
                 self.repo.set_air_time(ck)
                 self.repo.create_report_mission() ## when the drone landed create report file.
 
 
             parm = self.drone_vehicle.get_info_drone()
+
+            if self.drone_vehicle.vehicle.armed:
+                if min_bat >= float(parm['bat']) and self.low_battery is False:
+                    self.low_battery = True
+                    self.show_msg_user("low voltage")
+
             if parm['alt'] > max_alt:
                 max_alt = parm['alt']
+
             if parm['ground_speed'] > max_speed:
                 max_speed = parm['ground_speed']
 
@@ -597,8 +640,10 @@ class Gui:
             self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])
             self.time_air_info.config(text=ck)
 
+    def min_battery_voltage(self):
+        min_volt = float(self.setting.get_num_of_cell() * self.setting.get_min_v_per_cell())
+        return min_volt
 
-    #@staticmethod
     """the function call from show_msg_user when detection a person."""
     def start_alarm (self,sound_bool):    #the function call from show_msg_user and only on/off alarm when person detect
         while self.message_box_pop:
