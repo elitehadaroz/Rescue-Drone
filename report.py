@@ -13,7 +13,7 @@ class Report:
         #self.create_folder()
         self.__data_report = OrderedDict()
         self.__data_report = {'date':'','start mission':'','time connect':'','end mission':'','home location':'',
-                              'air time':'','number of waypoint':'','speed':'','persons location':[]}
+                              'air time':'','number of waypoint':'','max altitude':'','speed':'','persons location':[]}
         #self.__data_report = {}
         self.__num_of_person = 0
         self.__time_detection = ""
@@ -105,6 +105,7 @@ class Report:
             self.csv_writer.writerow(['end mission', self.__data_report['end mission']])
             self.csv_writer.writerow(['home location', self.__data_report['home location']])
             self.csv_writer.writerow(['air time', self.__data_report['air time']])
+            self.csv_writer.writerow(['max altitude', self.__data_report['max altitude']])
             self.csv_writer.writerow(['number of waypoint', self.__data_report['number of waypoint']])
             self.csv_writer.writerow(['speed', self.__data_report['speed']])
 

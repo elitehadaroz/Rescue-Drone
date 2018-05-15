@@ -350,6 +350,7 @@ class Gui:
             self.drone_is_connect = False  # change the bool drone to false,is mean that drone now is not connected
 
         elif key == 'sitl':
+            self.show_msg_monitor(">> Sitl is disconnected", "msg")
             self.drone_vehicle.sitl_disconnect()
             self.sitl_is_connect = False  # change the bool sitl to false,is mean that sitl now is not connected
 
@@ -377,7 +378,6 @@ class Gui:
     def on_closing(self,master):
             #if self.drone_vehicle.drone_connected is True:
         if self.drone_is_connect is True :
-            print("close drone")
             self.switch_on_off(master,'drone')
             time.sleep(3)
             root.destroy()
@@ -397,7 +397,7 @@ class Gui:
         self.show_msg_monitor(">> Connecting to the camera...", 'msg')
         self.detection_obj = PersonDetection(self.drone_vehicle, self)
         self.socket_video = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket_video.settimeout(15)
+        self.socket_video.settimeout(30)
         host = ''
         port = 8080
         try:
@@ -591,10 +591,11 @@ class Gui:
         hour = 0
         max_alt = 0
         max_speed = 0
-        min_bat = self.min_battery_voltage()
+
         self.repo.set_drone_connect_time(time.strftime("%H:%M:%S"))
 
         while self.drone_vehicle.drone_connected:
+            min_bat = self.min_battery_voltage()
             if self.drone_vehicle.vehicle.armed:
                 if start is None:
                     start = time.time()

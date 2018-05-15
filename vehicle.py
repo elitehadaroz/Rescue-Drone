@@ -72,7 +72,7 @@ class DroneControl:
         sec = 0
         while self.stop_timer is False:
             sec += 1
-            if sec == 120:
+            if sec == 100:
                 self.mavlink_time_out = True
                 break
             time.sleep(1)
@@ -164,12 +164,10 @@ class DroneControl:
             self.command_mission = self.vehicle.commands
             self.command_mission.download()
             self.command_mission.wait_ready()
-            self.report.set_num_waypoint(self.command_mission.count)
             while not self.vehicle.home_location:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
                 self.command_mission.wait_ready()
-                self.report.set_num_waypoint(self.command_mission.count)
                 if self.command_mission.count != 0:
                     self.gui.show_msg_monitor(">> Waiting for home location and download mission...", "msg")
                 if not self.vehicle.home_location:
@@ -178,7 +176,6 @@ class DroneControl:
                 if self.vehicle.home_location and self.command_mission.count != 0:
                     self.gui.show_msg_monitor(">> Mission download success ", "success")
                     self.gui.show_msg_monitor(">> Home location saved ", "success")
-                    self.report.set_home_location(self.__home_loc)
                     self.vehicle.flush()
                 if self.command_mission is not None:
                     if self.command_mission.count == 0:
@@ -214,16 +211,21 @@ class DroneControl:
                         else:
                             self.download_mission()
                     if self.command_mission is not None:
+                        self.report.set_num_waypoint(self.command_mission.count)
                         self.auto_mode_activated = True
                         self.setting_waypoint_mission() #setting the waypoint according to user request in setting
                         self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
                         self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_auto_speed()
+                        self.vehicle.parameters['RTL_ALT'] = (self.setting.get_altitude()*100)
                         self.report.set_top_speed(self.setting.get_auto_speed())
+                        print(self.command_mission.count)
+                        print("before auto modeeee")
                         self.vehicle.mode = VehicleMode("AUTO")
+                        print("after auto modeeee")
                         self.vehicle.flush()
                         self.read_waypoint_live()
-
+                        print("after read_waypoint_live")
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
                         while self.vehicle.armed:
                             time.sleep(1)
@@ -252,7 +254,7 @@ class DroneControl:
 
         home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.__home_loc.lat,
-                       self.__home_loc.lon, 20)
+                       self.__home_loc.lon, self.setting.get_altitude())
 
         rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                       mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
@@ -365,11 +367,11 @@ class DroneControl:
         self.gui.show_msg_monitor(">> Last Heartbeat: %s" % self.vehicle.last_heartbeat, "msg")
         self.gui.show_msg_monitor(">> System status: %s" % self.vehicle.system_status.state, "msg")
         self.gui.show_msg_monitor(">> Mode: %s" % self.vehicle.mode.name, "msg")
-
+        self.__home_loc = self.vehicle.location.global_relative_frame
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected = True
+        self.report.set_home_location(self.__home_loc)
 
-        self.__home_loc = self.vehicle.location.global_relative_frame
 
         self.gui.show_msg_monitor(">> Drone is connected", "success")
 
@@ -406,18 +408,17 @@ class DroneControl:
     def sitl_disconnect(self):
         self.cam_connect = False
         self.drone_connected = False
-        search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
+        #search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
 
-        port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
-        if port_pid_task is not None:
-            port_pid = port_pid_task[len(port_pid_task) - 1]
-            subprocess.Popen('taskkill /F /T /PID ' + port_pid, shell=True)
+        #port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
+        #if port_pid_task is not None:
+            #port_pid = port_pid_task[len(port_pid_task) - 1]
+            #subprocess.Popen('taskkill /F /T /PID ' + port_pid, shell=True)
 
-        if self.mavProxy_sitl_proc is not None:
-            pid_mavproxy_sitl_proc = self.mavProxy_sitl_proc.pid
-            subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
+        #if self.mavProxy_sitl_proc is not None:
+            #pid_mavproxy_sitl_proc = self.mavProxy_sitl_proc.pid
+            #subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
 
-        self.gui.show_msg_monitor(">> Sitl is disconnected", "msg")
 
     #when person detection the function switch from auto mode to manual mode and:
     # 1)show msg in monitor that person detection
