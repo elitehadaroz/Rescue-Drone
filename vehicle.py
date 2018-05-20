@@ -101,7 +101,7 @@ class DroneControl:
         self.manual_mode()
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.flush()
-        time.sleep(15)
+        time.sleep(6)
         self.vehicle.mode = VehicleMode("RTL")
         self.gui.show_msg_monitor(">> RTL mode activated", "msg")
         self.vehicle.flush()
@@ -232,6 +232,7 @@ class DroneControl:
 
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
+                        print("stabilize mode")
                         self.stabilize_mode()
                     else:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")

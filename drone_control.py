@@ -1,8 +1,8 @@
 # -*- coding: cp1255 -*-
 # -*- coding: utf-8 -*-
 
-import exceptions
-import codecs
+#import exceptions
+#import codecs
 import pickle
 import socket
 import struct
@@ -12,16 +12,16 @@ import time
 import vehicle
 import report
 import setting
-from pymavlink import mavutil, mavwp
+#from pymavlink import mavutil, mavwp
 from Tkinter import *
-import ttk
+#import ttk
 from mttkinter import mtTkinter
-from subprocess import PIPE
-from multiprocessing import Process
-import tkMessageBox
+#from subprocess import PIPE
+#from multiprocessing import Process
+#import tkMessageBox
 import cv2
 from PIL import Image, ImageTk
-from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
+#from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 from winsound import *
 
 ############################################# person detection ##############################################################
@@ -637,7 +637,6 @@ class Gui:
         min_volt = float(self.setting.get_num_of_cell() * self.setting.get_min_v_per_cell())
         return min_volt
 
-
     def start_alarm (self,sound_bool):
         """the function call from show_msg_user and only on/off alarm when person detect"""
         while self.message_box_pop:
@@ -647,7 +646,6 @@ class Gui:
                 time.sleep(2)
             else:
                 continue
-
 
     def key(self,event):
         """the function get event key from keyboard and send command to drone accordingly the key"""
@@ -704,7 +702,6 @@ class Gui:
                     self.move_right.config(relief=SUNKEN)
                     self.drone_vehicle.set_velocity_body(0, gnd_speed, 0,0)
                     self.move_right.after(100, lambda: self.move_right.config(relief=RAISED))
-
 
     def aplly_key(self,event):
         """apply keyboard control"""
