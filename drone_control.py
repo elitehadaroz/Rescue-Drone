@@ -1,5 +1,6 @@
 # -*- coding: cp1255 -*-
 # -*- coding: utf-8 -*-
+
 import exceptions
 import codecs
 import pickle
@@ -25,6 +26,7 @@ from winsound import *
 
 ############################################# person detection ##############################################################
 class PersonDetection:
+    #the class run the person_detection.py, and read msg if the person_detection send a msg that detection person.
     def __init__(self, drone_vehicle_obj,gui_obj):
         self.gui = gui_obj
         self.drone_vehicle = drone_vehicle_obj
@@ -48,7 +50,6 @@ class PersonDetection:
         while self.listener:
             msg_detection = self.person_detection_process.stdout.readline().rstrip('\n')
             if not msg_detection:
-                print "im in breack"
                 break
             if msg_detection is not None:
                 try:
@@ -62,6 +63,7 @@ class PersonDetection:
 ###############################################################################################################################
 
 class Gui:
+    """the class gui responsible for running all classes,the class creates the gui and the control panel."""
     def __init__(self, master):
         master.geometry("950x690")
         master.title("Rescue Drone")
@@ -96,9 +98,6 @@ class Gui:
         self.create_video_panel(master)
         # msg_drone frames
         self.create_monitor_msg(master)
-        # monitor_msg.insert(END, 'default text')
-
-        ########################################################################################
 
         self.show_msg_monitor(">> Welcome to Rescue Drone software", 'msg')
 
@@ -106,11 +105,12 @@ class Gui:
 
 
     def create_video_panel(self,master):
+        """the function create the area of video window."""
         self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
         self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
 
     def create_drone_control_panel(self,master):
-        # drone_control frames
+        """ the function create the drone_control frames."""
         self.drone_control = Frame(master, bg='gray')
 
         for x in xrange(4):
@@ -135,6 +135,7 @@ class Gui:
         self.image_capture = Button(self.drone_control,state=DISABLED, text="Image\ncapture", width=9, height=2,
                                           command=self.get_image_function)
         self.image_capture.grid(row=0, column=2, sticky=W + N, padx=4, pady=4)
+
         """button AUTO mode"""
         self.button_auto = Button(self.drone_control, state=DISABLED, text="Auto Search", width=9, height=3,
                                   command=self.send_auto_mode)
@@ -148,8 +149,8 @@ class Gui:
         self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3, command=self.send_rtl_mode)
         self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
 
-
     def create_monitor_msg(self,master):
+        """the function create the monitor msg"""
         indication_frame = Frame(master, height=200, bg='gray')
         for x in xrange(2):
             indication_frame.grid_rowconfigure(x, weight=1)
@@ -172,6 +173,7 @@ class Gui:
         self.create_info_panel(indication_frame)
 
     def create_info_panel(self,indication_frame):
+        """the function create the area of info from drone and the button to control drone from the keyboard"""
         self.info = Frame(indication_frame, bg='#282828')
         for x in xrange(10):
             indication_frame.grid_rowconfigure(x, weight=1)
@@ -236,7 +238,9 @@ class Gui:
         button_keyboard_control.grid(row=0, column=0, sticky=W)
 
     def show_keyboard_control(self):
-        if self.keyboard_control_bool.get() is True:
+        """the function shows / hides the button that control drone from keyboard"""
+
+        if self.keyboard_control_bool.get() is True: #shows
 
             self.move_up.config(state=NORMAL)
             self.move_dwon.config(state=NORMAL)
@@ -247,7 +251,7 @@ class Gui:
             self.move_right.config(state=NORMAL)
             self.move_left.config(state=NORMAL)
 
-        elif self.keyboard_control_bool.get() is False:
+        elif self.keyboard_control_bool.get() is False: #hides
 
             self.move_up.config(state=DISABLED)
             self.move_dwon.config(state=DISABLED)
@@ -258,24 +262,22 @@ class Gui:
             self.move_right.config(state=DISABLED)
             self.move_left.config(state=DISABLED)
 
-
-
-    # this function send to drone move to AUTO mode
     def send_auto_mode(self):
-
-        print("hello uuuuuuuuuuuuuuuuuuuu")
+        """this function send to drone move to AUTO mode"""
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
 
     def send_manual_mode(self):
+        """this function send to drone move to GUIDED mode"""
         self.drone_vehicle.manual_mode()
 
     def send_rtl_mode(self):
+        """this function send to drone move to RTL mode"""
         rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
         rtl.start()
-        #self.drone_vehicle.rtl_mode()
 
     def allow_deny_button(self,key):
+        """the function show/hides the button if the drone is connect/disconnect"""
         if key == 'allow':
             self.image_capture.config(state=NORMAL,bg='#E38608',fg='white')
             self.button_auto.config(state=NORMAL,bg='#0B407C',fg='white')
@@ -287,8 +289,8 @@ class Gui:
             self.button_manual.config(state=DISABLED,bg='white')
             self.button_rtl.config(state=DISABLED,bg='white')
 
-
     def switch_on_off(self, master, key):
+        """the functionn manages the connect / disconnect drone and accordingly show / hides buttons and text"""
         if key == 'drone':
             if self.sitl_is_connect is False:
                 if self.drone_is_connect is False:
@@ -305,7 +307,7 @@ class Gui:
                                                              target=lambda: self.disconnect(key, master))
                     disconnect_thread.start()
             else:
-                print("please disconnect from the SITL , and try again")
+                self.show_msg_monitor(">> please disconnect from the SITL , and try again", "msg")
         else:
             if self.drone_is_connect is False:
                 if self.sitl_is_connect is False:
@@ -322,29 +324,28 @@ class Gui:
                     disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
                     disconnect_thread.start()
             else:
-                print("please disconnect from the drone , and try again")
+                self.show_msg_monitor(">> please disconnect from the drone , and try again", "msg")
 
     def drone_connect(self, key, master):  # connect to the system
+        """the function send to drone_vehicle if connect to the drone or to sitl"""
         if key == 'drone':
             # this apply the mavProxy and after mavProxy succeeded,the mavProxy connecting the drone to the system in drone_control
             connecting_drone_thread = threading.Thread(name='connect_to_drone_thread',target=self.drone_vehicle.mav_proxy_connect)
             connecting_drone_thread.start()
         else:
-            #p = Process(target=self.drone_vehicle.connecting_sitl())
-            #p.start()
-            #p.join()
-            print("afterrrrrrr start")
-            #self.drone_vehicle.connecting_drone('sitl')
+            #connect to sitl system
             connecting_sitl_thread = threading.Thread(name='connect_to_sitl_thread',target=self.drone_vehicle.connecting_sitl)
             connecting_sitl_thread.start()
 
         get_info_drone = threading.Thread(name='send info',target=self.get_parm_drone)
         get_info_drone.start()
 
+        #start to camera
         person_detection_video = threading.Thread(name='cam_drone',target=lambda: self.cam_drone(master,key))
         person_detection_video.start()
 
-    def disconnect(self, key, master):  # disconnect from button
+    def disconnect(self, key, master):
+        """disconnect from drone/sitl by button disconnect"""
         if key == 'drone':
             self.drone_vehicle.drone_disconnect()
             self.drone_is_connect = False  # change the bool drone to false,is mean that drone now is not connected
@@ -358,15 +359,12 @@ class Gui:
             self.message_box_pop = False  # reset the bool message box.
             self.message_box.destroy()    #if the message box open destroy it.
 
-        print("close camera")
         self.socket_video.close()
         self.detection_obj.close_detection()
         self.clear_label(master)    #clear all value from labels and frame
 
-
-    """clear_label call from disconnect function,the function clear all value from frames and labels"""
     def clear_label(self,master):
-
+        """clear_label call from disconnect function,the function clear all value from frames and labels"""
         self.video_window.destroy()
         self.video_window = Label(master, width=65, height=26, borderwidth=2, relief="groove", bg="gray")
         self.video_window.grid(row=0, column=0, sticky=W + N + E + S, padx=5, pady=5)
@@ -376,14 +374,13 @@ class Gui:
         self.ground_speed_info.config(text="0.00")
 
     def on_closing(self,master):
-            #if self.drone_vehicle.drone_connected is True:
+        """if the user close the swoftwer from X button,this function close all threads and process and close thr gui"""
         if self.drone_is_connect is True :
-            self.switch_on_off(master,'drone')
+            self.switch_on_off(master,'drone') #disconnect drone.
             time.sleep(3)
             root.destroy()
         elif self.sitl_is_connect is True:
-            print("close sitl")
-            self.switch_on_off(master,'sitl')
+            self.switch_on_off(master,'sitl') #disconnect sitl
             time.sleep(3)
             root.destroy()
         else:
@@ -391,9 +388,11 @@ class Gui:
             return
 
     def get_image_function(self):
+        """every time that user press on button image capture, this function call to access to cam_drone function get a picture"""
         self.get_image = True
 
-    def cam_drone(self, master,key):  # master??
+    def cam_drone(self, master,key):
+        """the function connect to usp port and gets video frame from person_detection the send to udp port video frame"""
         self.show_msg_monitor(">> Connecting to the camera...", 'msg')
         self.detection_obj = PersonDetection(self.drone_vehicle, self)
         self.socket_video = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -401,15 +400,14 @@ class Gui:
         host = ''
         port = 8080
         try:
-            self.socket_video.bind((host, port))
-            print 'Socket bind complete'
+            self.socket_video.bind((host, port)) # connect to port
+            self.show_msg_monitor(">> Socket bind complete", "msg")
             self.socket_video.listen(20)
-            print 'Socket now listening'
+            self.show_msg_monitor(">> Socket now listening", "msg")
             conn, addr = self.socket_video.accept()
             conn.setblocking(1)
         except socket.error, exc:
             self.show_msg_monitor(">> error,problem video connect: %s" % exc,'error')
-            print("error,problem video connect: %s" % exc)
             if self.drone_is_connect:
                 self.switch_on_off(master, 'drone')
             elif self.sitl_is_connect:
@@ -426,9 +424,8 @@ class Gui:
                 break
             time.sleep(1)
 
-        while self.drone_vehicle.drone_connected:
-         #while self.drone_is_connect or self.sitl_is_connect:
-            #if self.drone_vehicle.cam_connect: # if the drone is not connected we will not continue to video
+        while self.drone_vehicle.drone_connected: #start show video frame on the screen
+
             while len(data) < payload_size:
                 data += conn.recv(4096)
             if not data:
@@ -454,27 +451,24 @@ class Gui:
                 imgtk = ImageTk.PhotoImage(image=img)
             except:
                 continue
-            #self.video_window.imgtk = imgtk
             self.video_window.configure(image=imgtk)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
-            #else:   #if there was no connection to the drone, turn off the video and disconnect from all.
-                #self.switch_on_off(master,key)
-                #break
 
     def show_msg_monitor(self, msg, tag):
+        """this function get a text msg and tag->like msg/error/success and show on monitor msg frame"""
         self.monitor_msg.config(state='normal')
         self.monitor_msg.insert(END, msg + "\n", tag)
         self.monitor_msg.see(END)
         self.monitor_msg.config(state='disabled')
 
-
     def show_msg_user(self,key):
-
+        """the function get a key and create template of important message to user with sound and button to how to continue"""
         if not self.message_box_pop:
             self.message_box_pop = True
-            if key == "person detection":
+
+            if key == "person detection":   #msg if person detection
                 text_message = "A person has been detected !\n do you want send GPS location and RTL?\n or continue search ? "
                 yes_button = "send GPS and RTL"
                 no_button = "continue to search"
@@ -485,15 +479,11 @@ class Gui:
 
                 start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool))
                 start_alarm.start()
-                """
-                change_color_title_msg = threading.Thread(name="change the title color msg",target=self.change_color)
-                change_color_title_msg.start()
-                """
 
                 button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
                 button_sound_on_oof.grid(row=1, column=0)
 
-            if key == "low voltage":
+            if key == "low voltage":    #msg if the battery voltage is low.
                 if  self.low_battery is True:
                     text_message = "LOW BATTERY !\n low battery voltage, return home.\n  "
                     yes_button = "return home"
@@ -510,6 +500,7 @@ class Gui:
                     button_sound_on_oof.grid(row=1, column=0)
 
     def create_message_box(self,msg_detail):
+        """the function get a msg template from show_msg_user and show the msg"""
         self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
                                       labelanchor=N)
         for x in xrange(5):
@@ -534,7 +525,8 @@ class Gui:
                                command=lambda: self.user_reply_message('mid', msg_detail['key']))
             send_gps.grid(row=1, column=2)
 
-    def user_reply_message(self, answer,key):   #the function get answer from the user what he wants to do after receiving the message in create_message_box
+    def user_reply_message(self, answer,key):
+        """the function get answer from the user what he wants to do after receiving the message in create_message_box"""
         if key == 'person detection':
             if answer == 'yes': #send gps and rtl
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and rtl,time:"+time.strftime("%H:%M:%S"))
@@ -570,6 +562,7 @@ class Gui:
         self.message_box_pop = False
 
     def timer_low_battery(self):
+        """if the user press the continue when msg battery show the timer start to 15 sec and alarm again msg."""
         t = 0
         while t < 15:
             t += 1
@@ -577,7 +570,7 @@ class Gui:
         self.low_battery = False
 
     def get_parm_drone(self):
-
+        """the function listen to drone all time when the drone connect,and show parameters"""
         while not self.drone_vehicle.drone_connected:
             time.sleep(1)
             if self.drone_vehicle.cam_connect is False:
@@ -610,10 +603,8 @@ class Gui:
                     hour += 1
                     minu = 0
             ck = format(hour, '02') + ":" + format(minu, '02') + ":" + format(second, '02')
-            #if self.drone_vehicle.vehicle.armed is False:
             if self.drone_vehicle.vehicle.armed is False and start is not None:      #the drone finish mission,write to report start and end time mission and air time
                 start = None
-                #self.time_air_info.config(text="00:00:00")
                 end_mission =  time.strftime("%H:%M:%S")
                 self.repo.set_end_mission(end_mission)
                 self.repo.set_max_alt(max_alt)
@@ -642,11 +633,13 @@ class Gui:
             self.time_air_info.config(text=ck)
 
     def min_battery_voltage(self):
+        """clculate the minimum voltage on the battery"""
         min_volt = float(self.setting.get_num_of_cell() * self.setting.get_min_v_per_cell())
         return min_volt
 
-    """the function call from show_msg_user when detection a person."""
-    def start_alarm (self,sound_bool):    #the function call from show_msg_user and only on/off alarm when person detect
+
+    def start_alarm (self,sound_bool):
+        """the function call from show_msg_user and only on/off alarm when person detect"""
         while self.message_box_pop:
             if sound_bool.get() is False:
                 print sound_bool.get()
@@ -657,13 +650,9 @@ class Gui:
 
 
     def key(self,event):
-        gnd_speed = self.setting.get_manu_speed()  # [m/s]
-        """
-        if event.char == event.keysym:  # -- standard keys
-            if event.keysym == 'r':
-                print("r pressed >> Set the vehicle to RTL")
-                self.drone_vehicle.arm_and_takeoff(20)  # start takeoff
-        """
+        """the function get event key from keyboard and send command to drone accordingly the key"""
+        gnd_speed = self.setting.get_manu_speed()  # [m/s] ->meter/second
+
         if self.keyboard_control_bool.get() is True and self.drone_vehicle.vehicle.armed is True:
             if event.char == event.keysym:  # -- standard keys
                 if event.keysym == 's':
@@ -716,36 +705,22 @@ class Gui:
                     self.drone_vehicle.set_velocity_body(0, gnd_speed, 0,0)
                     self.move_right.after(100, lambda: self.move_right.config(relief=RAISED))
 
-        print("enddddddddddddddd offfff key function")
 
     def aplly_key(self,event):
+        """apply keyboard control"""
         key_button = threading.Thread(name="key_button", target=lambda :self.key(event))  # check when possible again alarm operation
         key_button.start()
 
     def clean_missions(self):
+        """clean mission from the drone"""
         self.drone_vehicle.clean_missions()
 ###############################################################################################################################
 ##################################################### main ####################################################################
 
 if __name__ == "__main__":
+
     root = Tk()
-
     gui = Gui(root)
-
     root.bind_all('<Key>',gui.aplly_key)
     root.mainloop()
-    print("after person detection")
     sys.exit()
-"""
-def get_distance_metres(aLocation1, aLocation2):
-    
-    Returns the ground distance in metres between two LocationGlobal objects.
-
-    This method is an approximation, and will not be accurate over large distances and close to the 
-    earth's poles. It comes from the ArduPilot test code: 
-    https://github.com/diydrones/ardupilot/blob/master/Tools/autotest/common.py
-    
-    dlat = aLocation2.lat - aLocation1.lat
-    dlong = aLocation2.lon - aLocation1.lon
-    return math.sqrt((dlat*dlat) + (dlong*dlong)) * 1.113195e5
-"""
