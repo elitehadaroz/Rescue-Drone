@@ -91,7 +91,13 @@ class DroneControl:
             self.gui.show_msg_monitor(">> Drone is disconnected", "msg")
 
     # set GUIDED mode,the drone now in GUIDED mode
+    def loiter_mode(self):
+        self.vehicle.mode = VehicleMode("LOITER")
+        self.gui.show_msg_monitor(">> LOITER mode activated", "msg")
+        self.vehicle.flush()
+
     def manual_mode(self):
+        #self.vehicle.mode = VehicleMode("LOITER")
         self.vehicle.mode = VehicleMode("GUIDED")
         self.gui.show_msg_monitor(">> GUIDED mode activated", "msg")
         self.vehicle.flush()
@@ -197,6 +203,7 @@ class DroneControl:
     def clean_missions(self):
         if self.command_mission is not None:
             self.command_mission.clear()
+            self.vehicle.flush()
             self.command_mission = None
         self.gui.show_msg_monitor(">> Clean mission ", "success")
 
@@ -217,13 +224,15 @@ class DroneControl:
                         self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
                         self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_auto_speed()
+                        print("1")
                         self.vehicle.parameters['RTL_ALT'] = (self.setting.get_altitude()*100)
+                        print("2")
                         self.report.set_top_speed(self.setting.get_auto_speed())
                         print(self.command_mission.count)
                         print("before auto modeeee")
                         self.vehicle.mode = VehicleMode("AUTO")
                         print("after auto modeeee")
-                        self.vehicle.flush()
+                        #self.vehicle.flush()
                         self.read_waypoint_live()
                         print("after read_waypoint_live")
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
@@ -253,6 +262,7 @@ class DroneControl:
             missionlist.append(cmd)
 
 
+
         home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.__home_loc.lat,
                        self.__home_loc.lon, self.setting.get_altitude())
@@ -264,10 +274,12 @@ class DroneControl:
         missionlist.append(home)  # add new mission,home location waypoint to end of missions
         missionlist.append(rtl)   # add rtl mode to end of mission
         self.command_mission.clear()
-
+        self.vehicle.flush()
+        time.sleep(1)
         for cmd in missionlist:
             self.command_mission.add(cmd)
         self.command_mission.upload()
+        self.vehicle.flush()
 
     #the function read the waypoint and print the waypoint that the drone move it.call from auto_mode function
     def read_waypoint_live(self):

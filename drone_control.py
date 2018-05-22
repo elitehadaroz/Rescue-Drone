@@ -87,7 +87,7 @@ class Gui:
         # create the main frame to rows and columns.
         for x in xrange(5):
             master.grid_rowconfigure(x, weight=1)
-        for y in xrange(5):
+        for y in xrange(6):
             master.grid_columnconfigure(y, weight=1)
 
 
@@ -115,7 +115,7 @@ class Gui:
 
         for x in xrange(4):
             self.drone_control.grid_rowconfigure(x, weight=1)
-        for y in xrange(2):
+        for y in xrange(3):
             self.drone_control.grid_columnconfigure(y, weight=1)
 
 
@@ -141,13 +141,18 @@ class Gui:
                                   command=self.send_auto_mode)
         self.button_auto.grid(row=1, column=0, columnspan=1, sticky=W + N, padx=4, pady=4)
 
-        """button MANUAL mode"""
-        self.button_manual = Button(self.drone_control, state=DISABLED, text="Manual", width=9, height=3, command=self.send_manual_mode)
-        self.button_manual.grid(row=1, column=1, columnspan=1, sticky=W + N, pady=4)
+        """button LOITER mode"""
+        self.button_loiter = Button(self.drone_control, state=DISABLED, text="Loiter", width=9, height=3,
+                                  command=self.send_loiter_mode)
+        self.button_loiter.grid(row=1, column=1, columnspan=1, sticky=W + N, padx=4, pady=4)
+
+        """button GUIDED mode"""
+        self.button_manual = Button(self.drone_control, state=DISABLED, text="Guided", width=9, height=3, command=self.send_manual_mode)
+        self.button_manual.grid(row=1, column=2, columnspan=1, sticky=W + N, pady=4)
 
         """button RTL mode"""
         self.button_rtl = Button(self.drone_control, state=DISABLED, text="RTL", width=9, height=3, command=self.send_rtl_mode)
-        self.button_rtl.grid(row=1, column=2, columnspan=1, sticky=W + N, padx=4, pady=4)
+        self.button_rtl.grid(row=1, column=3, columnspan=1, sticky=W + N, padx=4, pady=4)
 
     def create_monitor_msg(self,master):
         """the function create the monitor msg"""
@@ -232,10 +237,10 @@ class Gui:
         self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=2, pady=2)
 
         self.keyboard_control_bool = BooleanVar()
-        button_keyboard_control = Checkbutton(self.drone_control, text="Keyboard control", bg='gray',
+        button_keyboard_control = Checkbutton(self.drone_control, text="Keyboard \n control", bg='gray',
                                               activebackground='gray', variable=self.keyboard_control_bool,
                                               command=self.show_keyboard_control)
-        button_keyboard_control.grid(row=0, column=0, sticky=W)
+        button_keyboard_control.grid(row=0, column=0, sticky=W + S ,pady=4)
 
     def show_keyboard_control(self):
         """the function shows / hides the button that control drone from keyboard"""
@@ -266,6 +271,9 @@ class Gui:
         """this function send to drone move to AUTO mode"""
         auto = threading.Thread(name='drone connect', target=self.drone_vehicle.auto_mode)
         auto.start()
+    def send_loiter_mode(self):
+        """this function send to drone move to LOITER mode ,need a remote controle"""
+        self.drone_vehicle.loiter_mode()
 
     def send_manual_mode(self):
         """this function send to drone move to GUIDED mode"""
@@ -281,11 +289,13 @@ class Gui:
         if key == 'allow':
             self.image_capture.config(state=NORMAL,bg='#E38608',fg='white')
             self.button_auto.config(state=NORMAL,bg='#0B407C',fg='white')
+            self.button_loiter.config(state = NORMAL,bg='#0B407C',fg='white')
             self.button_manual.config(state=NORMAL,bg='#0B407C',fg='white')
             self.button_rtl.config(state=NORMAL,bg='#0B407C',fg='white')
         elif key == 'deny':
             self.image_capture.config(state=DISABLED,bg='white')
             self.button_auto.config(state=DISABLED,bg='white')
+            self.button_loiter.config(state=DISABLED, bg='white')
             self.button_manual.config(state=DISABLED,bg='white')
             self.button_rtl.config(state=DISABLED,bg='white')
 
