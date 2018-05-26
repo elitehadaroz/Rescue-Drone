@@ -26,6 +26,7 @@ class DroneControl:
         self.auto_mode_activated = False
         self.__home_loc = None
         self.__person_location = None
+        self.__insert_end_mission = False
 
     #connect with mavproxy and split the data
     def mav_proxy_connect(self):
@@ -170,6 +171,7 @@ class DroneControl:
             self.command_mission = self.vehicle.commands
             self.command_mission.download()
             self.command_mission.wait_ready()
+            print("1 d")
             while not self.vehicle.home_location:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
@@ -178,11 +180,14 @@ class DroneControl:
                     self.gui.show_msg_monitor(">> Waiting for home location and download mission...", "msg")
                 if not self.vehicle.home_location:
                     time.sleep(1)
+                print("2 d")
             if self.command_mission is not None:
                 if self.vehicle.home_location and self.command_mission.count != 0:
                     self.gui.show_msg_monitor(">> Mission download success ", "success")
                     self.gui.show_msg_monitor(">> Home location saved ", "success")
                     self.vehicle.flush()
+                    print("3 d")
+                    self.command_mission.upload()
                 if self.command_mission is not None:
                     if self.command_mission.count == 0:
                         self.command_mission = None
@@ -202,6 +207,7 @@ class DroneControl:
     #clean all mission from drone
     def clean_missions(self):
         if self.command_mission is not None:
+            self.__insert_end_mission = False
             self.command_mission.clear()
             self.vehicle.flush()
             self.command_mission = None
@@ -231,10 +237,12 @@ class DroneControl:
                         print(self.command_mission.count)
                         print("before auto modeeee")
                         self.vehicle.mode = VehicleMode("AUTO")
+                        self.vehicle.flush()
                         print("after auto modeeee")
-                        while self.vehicle.mode.name is not 'AUTO':
+                        while not self.vehicle.mode.name == 'AUTO':
                             time.sleep(1)
                         #self.vehicle.flush()
+                        print("after auto is show")
                         self.read_waypoint_live()
                         print("after read_waypoint_live")
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
@@ -243,8 +251,8 @@ class DroneControl:
 
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
-                        print("stabilize mode")
-                        self.stabilize_mode()
+                        print("guided mode")
+                        self.manual_mode()
                     else:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
                 else:
@@ -258,36 +266,45 @@ class DroneControl:
 
     # the function read all the waypoint and edit values by setting user, and insert rtl mode to end of mission.call from auto_mode function
     def setting_waypoint_mission(self):
+
         self.command_mission = self.vehicle.commands
         self.command_mission.download()
         self.command_mission.wait_ready()
 
-        missionlist = []
-        for cmd in self.command_mission:
-            cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
-            missionlist.append(cmd)
+        if self.__insert_end_mission is False:
+            self.__insert_end_mission = True
+            missionlist = []
+            print("len missionlist 1", len(missionlist))
+            for cmd in self.command_mission:
+                cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
+                missionlist.append(cmd)
 
 
 
-        home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+            home = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                        mavutil.mavlink.MAV_CMD_NAV_WAYPOINT, 0, 0, 0, 0, 0, 0, self.__home_loc.lat,
                        self.__home_loc.lon, self.setting.get_altitude())
 
-        rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
+            rtl = Command(0, 0, 0, mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT,
                       mavutil.mavlink.MAV_CMD_NAV_RETURN_TO_LAUNCH, 0,
                       0, 0, 0, 0, 0, 0, 0, 0)
 
-        missionlist.append(home)  # add new mission,home location waypoint to end of missions
-        missionlist.append(rtl)   # add rtl mode to end of mission
-        self.command_mission.clear()
-        self.vehicle.flush()
-        time.sleep(1)
-        for cmd in missionlist:
-            self.command_mission.add(cmd)
-        self.command_mission.upload()
-        print( self.command_mission.count)
+            missionlist.append(home)  # add new mission,home location waypoint to end of missions
+            missionlist.append(rtl)   # add rtl mode to end of mission
+            self.command_mission.clear()
+            #self.vehicle.flush()
+            time.sleep(1)
+            print("len missionlist 2",len(missionlist))
+            for cmd in missionlist:
+                self.command_mission.add(cmd)
+            self.command_mission.upload()
 
+        print("hi")
+        print(self.command_mission)
+        print( self.command_mission.count)
+        print("hi")
     #the function read the waypoint and print the waypoint that the drone move it.call from auto_mode function
+
     def read_waypoint_live(self):
         nextwaypoint = self.vehicle.commands.next
         while nextwaypoint < len(self.vehicle.commands):
@@ -326,7 +343,7 @@ class DroneControl:
             # Copter should arm in GUIDED mode
             self.vehicle.mode = VehicleMode("GUIDED")
             self.vehicle.armed = True
-
+            self.vehicle.flush()
             # Confirm vehicle armed before attempting to take off
             self.gui.show_msg_monitor(">> Waiting for arming...", "msg")
             while not self.vehicle.armed:
