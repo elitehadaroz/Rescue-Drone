@@ -232,6 +232,8 @@ class DroneControl:
                         print("before auto modeeee")
                         self.vehicle.mode = VehicleMode("AUTO")
                         print("after auto modeeee")
+                        while self.vehicle.mode.name is not 'AUTO':
+                            time.sleep(1)
                         #self.vehicle.flush()
                         self.read_waypoint_live()
                         print("after read_waypoint_live")
@@ -256,6 +258,10 @@ class DroneControl:
 
     # the function read all the waypoint and edit values by setting user, and insert rtl mode to end of mission.call from auto_mode function
     def setting_waypoint_mission(self):
+        self.command_mission = self.vehicle.commands
+        self.command_mission.download()
+        self.command_mission.wait_ready()
+
         missionlist = []
         for cmd in self.command_mission:
             cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
@@ -279,7 +285,7 @@ class DroneControl:
         for cmd in missionlist:
             self.command_mission.add(cmd)
         self.command_mission.upload()
-        self.vehicle.flush()
+        print( self.command_mission.count)
 
     #the function read the waypoint and print the waypoint that the drone move it.call from auto_mode function
     def read_waypoint_live(self):
