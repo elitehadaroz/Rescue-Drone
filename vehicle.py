@@ -245,6 +245,7 @@ class DroneControl:
                         print("after auto is show")
                         self.read_waypoint_live()
                         print("after read_waypoint_live")
+
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
                         while self.vehicle.armed:
                             time.sleep(1)
@@ -276,6 +277,9 @@ class DroneControl:
             missionlist = []
             print("len missionlist 1", len(missionlist))
             for cmd in self.command_mission:
+                print(cmd)
+                cmd.frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
+                cmd.autocontinue = 0
                 cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
                 missionlist.append(cmd)
 
@@ -291,14 +295,18 @@ class DroneControl:
 
             missionlist.append(home)  # add new mission,home location waypoint to end of missions
             missionlist.append(rtl)   # add rtl mode to end of mission
+            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+
             self.command_mission.clear()
-            #self.vehicle.flush()
+            self.vehicle.flush()
             time.sleep(1)
             print("len missionlist 2",len(missionlist))
             for cmd in missionlist:
                 self.command_mission.add(cmd)
             self.command_mission.upload()
-
+            self.vehicle.flush()
+        for cmd in self.command_mission:
+            print(cmd)
         print("hi")
         print(self.command_mission)
         print( self.command_mission.count)
@@ -307,8 +315,13 @@ class DroneControl:
 
     def read_waypoint_live(self):
         nextwaypoint = self.vehicle.commands.next
+        print("hello 1 read")
+        print("the one is",nextwaypoint)
         while nextwaypoint < len(self.vehicle.commands):
+            print("hello read mid")
+            print(nextwaypoint)
             if self.vehicle.commands.next > nextwaypoint:
+                print("hello read 2")
                 display_seq = self.vehicle.commands.next
                 point_num = "Moving to waypoint %s" % display_seq
                 self.gui.show_msg_monitor(">> " + point_num , "msg")
