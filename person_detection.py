@@ -22,7 +22,8 @@ import struct
 
 
 cap=cv2.VideoCapture(0)
-
+# camera from the computer = 0
+# camera from the drone = 1
 
 sys.path.append("..")
 

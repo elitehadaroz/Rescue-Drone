@@ -65,7 +65,7 @@ class Report:
         self.__data_report['speed'] = speed
 
     def set_person_loc(self,loc,name):
-        person =["person"+ str(self.__num_of_person) + "," + name,"lon:",str(loc.lat),"lon:",str(loc.lon),"time detection:",str(self.__time_detection)]
+        person =["person"+ str(self.__num_of_person) + "," + name,"lat:",str(loc.lat),"lon:",str(loc.lon),"time detection:",str(self.__time_detection)]
         #this = self.__data_report.get('persons location',[])
         self.__data_report['persons location'].append(person)
         #self.__data_report['persons test'] += person

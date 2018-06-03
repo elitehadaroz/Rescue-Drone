@@ -517,7 +517,7 @@ class Gui:
             self.message_box.grid_columnconfigure(x, weight=1)
         for y in xrange(2):
             self.message_box.grid_rowconfigure(y, weight=1)
-        self.message_box.grid(row=2, column=0, columnspan=3, rowspan=5, sticky=W + N + E + S)
+        self.message_box.grid(row=2, column=0, columnspan=4, rowspan=5, sticky=W + N + E + S)
 
         message = Label(self.message_box, text=msg_detail['message'],font=10)
         message.grid(row=0, columnspan=5)

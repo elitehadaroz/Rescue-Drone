@@ -77,6 +77,7 @@ class DroneControl:
                 self.mavlink_time_out = True
                 break
             time.sleep(1)
+        print(sec)
 
     #disconnect from vehicle and close process
     def drone_disconnect(self):
@@ -106,6 +107,7 @@ class DroneControl:
     # set RTL mode,the drone now in RTL mode
     def rtl_mode(self):
         self.manual_mode()
+        print(self.__home_loc)
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.flush()
         time.sleep(6)
