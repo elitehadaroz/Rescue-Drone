@@ -106,8 +106,9 @@ class DroneControl:
 
     # set RTL mode,the drone now in RTL mode
     def rtl_mode(self):
+        self.auto_mode_activated = False
         self.manual_mode()
-        print(self.__home_loc)
+        self.__home_loc.alt = self.setting.get_altitude()
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.flush()
         time.sleep(6)
@@ -173,7 +174,6 @@ class DroneControl:
             self.command_mission = self.vehicle.commands
             self.command_mission.download()
             self.command_mission.wait_ready()
-            print("1 d")
             while not self.vehicle.home_location:
                 self.command_mission = self.vehicle.commands
                 self.command_mission.download()
@@ -182,13 +182,11 @@ class DroneControl:
                     self.gui.show_msg_monitor(">> Waiting for home location and download mission...", "msg")
                 if not self.vehicle.home_location:
                     time.sleep(1)
-                print("2 d")
             if self.command_mission is not None:
                 if self.vehicle.home_location and self.command_mission.count != 0:
                     self.gui.show_msg_monitor(">> Mission download success ", "success")
                     self.gui.show_msg_monitor(">> Home location saved ", "success")
                     self.vehicle.flush()
-                    print("3 d")
                     self.command_mission.upload()
                 if self.command_mission is not None:
                     if self.command_mission.count == 0:
@@ -232,21 +230,14 @@ class DroneControl:
                         self.arm_and_takeoff(self.setting.get_altitude()) #start takeoff
                         self.gui.show_msg_monitor(">> The drone begins the mission", "msg")
                         self.vehicle.parameters['WPNAV_SPEED'] = self.setting.get_auto_speed()
-                        print("1")
                         self.vehicle.parameters['RTL_ALT'] = (self.setting.get_altitude()*100)
-                        print("2")
                         self.report.set_top_speed(self.setting.get_auto_speed())
-                        print(self.command_mission.count)
-                        print("before auto modeeee")
                         self.vehicle.mode = VehicleMode("AUTO")
                         self.vehicle.flush()
-                        print("after auto modeeee")
                         while not self.vehicle.mode.name == 'AUTO':
                             time.sleep(1)
                         #self.vehicle.flush()
-                        print("after auto is show")
                         self.read_waypoint_live()
-                        print("after read_waypoint_live")
 
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
                         while self.vehicle.armed:
@@ -254,7 +245,6 @@ class DroneControl:
 
                         self.gui.show_msg_monitor(">> The drone is landed success,end of mission ", "success")
                         self.auto_mode_activated = False
-                        print("guided mode")
                         self.manual_mode()
                     else:
                         self.gui.show_msg_monitor(">> Please enter mission", "msg")
@@ -277,7 +267,6 @@ class DroneControl:
         if self.__insert_end_mission is False:
             self.__insert_end_mission = True
             missionlist = []
-            print("len missionlist 1", len(missionlist))
             for cmd in self.command_mission:
                 print(cmd)
                 cmd.frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
@@ -297,33 +286,22 @@ class DroneControl:
 
             missionlist.append(home)  # add new mission,home location waypoint to end of missions
             missionlist.append(rtl)   # add rtl mode to end of mission
-            print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
 
             self.command_mission.clear()
             self.vehicle.flush()
             time.sleep(1)
-            print("len missionlist 2",len(missionlist))
             for cmd in missionlist:
                 self.command_mission.add(cmd)
             self.command_mission.upload()
             self.vehicle.flush()
         for cmd in self.command_mission:
             print(cmd)
-        print("hi")
-        print(self.command_mission)
-        print( self.command_mission.count)
-        print("hi")
     #the function read the waypoint and print the waypoint that the drone move it.call from auto_mode function
 
     def read_waypoint_live(self):
         nextwaypoint = self.vehicle.commands.next
-        print("hello 1 read")
-        print("the one is",nextwaypoint)
         while nextwaypoint < len(self.vehicle.commands):
-            print("hello read mid")
-            print(nextwaypoint)
             if self.vehicle.commands.next > nextwaypoint:
-                print("hello read 2")
                 display_seq = self.vehicle.commands.next
                 point_num = "Moving to waypoint %s" % display_seq
                 self.gui.show_msg_monitor(">> " + point_num , "msg")

@@ -459,9 +459,9 @@ class Gui:
             img = Image.fromarray(last_frame)
             try:
                 imgtk = ImageTk.PhotoImage(image=img)
+                self.video_window.configure(image=imgtk)
             except:
                 continue
-            self.video_window.configure(image=imgtk)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
