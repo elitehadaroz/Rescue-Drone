@@ -2,15 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bf087ea8-1107-4067-8549-19d8b7a07fd8" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dictionaries/.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/.xml" />
+      <change beforePath="" afterPath="$PROJECT_DIR$/rescue-drone-firebase-adminsdk.json" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change beforePath="$PROJECT_DIR$/drone_control.py" afterPath="$PROJECT_DIR$/drone_control.py" />
-      <change beforePath="$PROJECT_DIR$/mav.parm" afterPath="$PROJECT_DIR$/mav.parm" />
-      <change beforePath="$PROJECT_DIR$/mav.tlog" afterPath="$PROJECT_DIR$/mav.tlog" />
-      <change beforePath="$PROJECT_DIR$/mav.tlog.raw" afterPath="$PROJECT_DIR$/mav.tlog.raw" />
-      <change beforePath="$PROJECT_DIR$/person_detection.py" afterPath="$PROJECT_DIR$/person_detection.py" />
-      <change beforePath="$PROJECT_DIR$/setting.py" afterPath="$PROJECT_DIR$/setting.py" />
-      <change beforePath="$PROJECT_DIR$/vehicle.py" afterPath="$PROJECT_DIR$/vehicle.py" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -58,8 +51,8 @@
       <file leaf-file-name="vehicle.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/vehicle.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="170">
-              <caret line="107" column="44" lean-forward="true" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
+            <state relative-caret-position="289">
+              <caret line="102" column="50" lean-forward="true" selection-start-line="102" selection-start-column="50" selection-end-line="102" selection-end-column="50" />
               <folding>
                 <element signature="e#0#16#0" expanded="true" />
                 <element signature="e#2643#3300#0" expanded="false" />
@@ -568,7 +561,14 @@
       <option name="project" value="LOCAL" />
       <updated>1528405393191</updated>
     </task>
-    <option name="localTasksCounter" value="44" />
+    <task id="LOCAL-00044" summary="add feature to add user and delete to database that connect to application mobile,and add color to msg">
+      <created>1528469119694</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1528469119694</updated>
+    </task>
+    <option name="localTasksCounter" value="45" />
     <servers />
   </component>
   <component name="TodoView">
@@ -606,7 +606,6 @@
     <option name="myLimit" value="2678400000" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="finish mode return search after detected person" />
     <MESSAGE value="start to create csv file report on mision, and add feature take a photo" />
     <MESSAGE value="media" />
     <MESSAGE value="start create report mission in csv file,add air time info" />
@@ -631,7 +630,8 @@
     <MESSAGE value="No3 test to fix bug that mission not start." />
     <MESSAGE value="fix lon to lat in create report file" />
     <MESSAGE value="fix bug return home latitude" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix bug return home latitude" />
+    <MESSAGE value="add feature to add user and delete to database that connect to application mobile,and add color to msg" />
+    <option name="LAST_COMMIT_MESSAGE" value="add feature to add user and delete to database that connect to application mobile,and add color to msg" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1199,8 +1199,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/vehicle.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="170">
-          <caret line="107" column="44" lean-forward="true" selection-start-line="107" selection-start-column="44" selection-end-line="107" selection-end-column="44" />
+        <state relative-caret-position="289">
+          <caret line="102" column="50" lean-forward="true" selection-start-line="102" selection-start-column="50" selection-end-line="102" selection-end-column="50" />
           <folding>
             <element signature="e#0#16#0" expanded="true" />
             <element signature="e#2643#3300#0" expanded="false" />
