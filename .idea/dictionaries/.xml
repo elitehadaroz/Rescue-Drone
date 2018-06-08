@@ -4,6 +4,7 @@
       <w>addr</w>
       <w>dlat</w>
       <w>dlong</w>
+      <w>firebase</w>
       <w>minu</w>
       <w>nextwaypoint</w>
       <w>waypoint</w>

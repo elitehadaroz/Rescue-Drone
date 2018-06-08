@@ -27,12 +27,15 @@ from winsound import *
 ############################################# person detection ##############################################################
 class PersonDetection:
     #the class run the person_detection.py, and read msg if the person_detection send a msg that detection person.
-    def __init__(self, drone_vehicle_obj,gui_obj):
+    def __init__(self, drone_vehicle_obj,type_cam,gui_obj):
         self.gui = gui_obj
         self.drone_vehicle = drone_vehicle_obj
         self.listener = True
         self.gui.show_msg_monitor(">> Start detection process", 'msg')
-        person_detection = "py person_detection.py"  # launch the person_detection script using bash
+        if type_cam == 1:
+            person_detection = "py person_detection.py 1" # launch the person_detection script using bash
+        else:
+            person_detection = "py person_detection.py 0"  # launch the person_detection script using bash
         self.person_detection_process = subprocess.Popen(person_detection, shell=True, stdout=subprocess.PIPE)
 
         # msg thread,if the camera detection person msg send to drone_vehicle.person_detected()
@@ -74,6 +77,8 @@ class Gui:
         self.message_box = None   #this LabelFrame create when have message from system\person detection etc..
         self.repo = report.Report()
         self.setting = setting.Setting(master,self)
+        self.setting.get_db().delete('','locations') # reset firebase database
+        self.__count_person = 0 #how many person to send gps to dataBase
         self.drone_vehicle = vehicle.DroneControl(self,self.repo,self.setting)
         self.low_battery = False
         self.drone_control = None
@@ -404,7 +409,10 @@ class Gui:
     def cam_drone(self, master,key):
         """the function connect to usp port and gets video frame from person_detection the send to udp port video frame"""
         self.show_msg_monitor(">> Connecting to the camera...", 'msg')
-        self.detection_obj = PersonDetection(self.drone_vehicle, self)
+        if key == 'drone':
+            self.detection_obj = PersonDetection(self.drone_vehicle,1, self)
+        else:
+            self.detection_obj = PersonDetection(self.drone_vehicle, 0, self)
         self.socket_video = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket_video.settimeout(30)
         host = ''
@@ -490,7 +498,7 @@ class Gui:
                 start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool))
                 start_alarm.start()
 
-                button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
+                button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool,bg='#E5C100')
                 button_sound_on_oof.grid(row=1, column=0)
 
             if key == "low voltage":    #msg if the battery voltage is low.
@@ -506,32 +514,32 @@ class Gui:
                                                    target=lambda: self.start_alarm(sound_bool))
                     start_alarm.start()
 
-                    button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool)
+                    button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool,bg='#E5C100')
                     button_sound_on_oof.grid(row=1, column=0)
 
     def create_message_box(self,msg_detail):
-        """the function get a msg template from show_msg_user and show the msg"""
+        """the functionf get a msg template from show_msg_user and show the msg"""
         self.message_box = LabelFrame(self.drone_control, fg='red', text="!! Message !!", font=("Courier", 15),
-                                      labelanchor=N)
+                                      labelanchor=N,bg='#E5C100')
         for x in xrange(5):
             self.message_box.grid_columnconfigure(x, weight=1)
         for y in xrange(2):
             self.message_box.grid_rowconfigure(y, weight=1)
         self.message_box.grid(row=2, column=0, columnspan=4, rowspan=5, sticky=W + N + E + S)
 
-        message = Label(self.message_box, text=msg_detail['message'],font=10)
+        message = Label(self.message_box, text=msg_detail['message'],font=10,bg='#E5C100')
         message.grid(row=0, columnspan=5)
 
-        button_yes = Button(self.message_box, text=msg_detail['yes_b'], width=15, height=2,
+        button_yes = Button(self.message_box, text=msg_detail['yes_b'], width=15, height=2,bg='#5CB300',
                            command=lambda: self.user_reply_message('yes',msg_detail['key']))
         button_yes.grid(row=1, column=1)
 
-        button_no = Button(self.message_box, text=msg_detail['no_b'], width=15, height=2,
+        button_no = Button(self.message_box, text=msg_detail['no_b'], width=15, height=2,bg='#5CB300',
                            command=lambda: self.user_reply_message('no',msg_detail['key']))
         button_no.grid(row=1, column=3)
 
         if msg_detail['key'] == 'person detection':
-            send_gps = Button(self.message_box, text=msg_detail['mid_b'], width=15, height=2,
+            send_gps = Button(self.message_box, text=msg_detail['mid_b'], width=15, height=2,bg='#5CB300',
                                command=lambda: self.user_reply_message('mid', msg_detail['key']))
             send_gps.grid(row=1, column=2)
 
@@ -540,20 +548,23 @@ class Gui:
         if key == 'person detection':
             if answer == 'yes': #send gps and rtl
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and rtl,time:"+time.strftime("%H:%M:%S"))
-                self.drone_vehicle.send_gps_and_rtl()
+                self.person_location_todb(self.drone_vehicle.get_person_location())
+                #self.send_rtl_mode()
                 #self.message_box.destroy()
+                rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
+                rtl.start()
 
             elif answer == 'no': #return to search
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "return to search,time:"+time.strftime("%H:%M:%S"))
                 self.show_msg_monitor(">> Return to search", "msg")
-                self.drone_vehicle.auto_mode()
+                self.send_auto_mode()
                 #self.message_box.destroy()
 
             else:   #send gps and stay in position
                 #self.repo.set_image()
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "send gps and stay,time:"+time.strftime("%H:%M:%S"))
+                self.person_location_todb(self.drone_vehicle.get_person_location())
                 self.drone_vehicle.send_gps_and_stay()
-                print("need write a function here")
             #self.message_box.destroy()
             #self.message_box_pop =False
             check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
@@ -578,6 +589,10 @@ class Gui:
             t += 1
             time.sleep(1)
         self.low_battery = False
+
+    def person_location_todb(self,location):
+        self.setting.get_db().patch('location' + str(self.__count_person), {'longitude': location.lon, 'latitude': location.lat})
+        self.__count_person +=1
 
     def get_parm_drone(self):
         """the function listen to drone all time when the drone connect,and show parameters"""
@@ -636,7 +651,7 @@ class Gui:
             if parm['ground_speed'] > max_speed:
                 max_speed = parm['ground_speed']
 
-            self.altitude_info.config(text=parm['alt'])
+            self.altitude_info.config(text="%.2f" % parm['alt'])
             self.bat_volt_info.config(text="%.2f" % parm['bat'])
             self.dist_to_home_info.config(text="%.2f" % parm['dist_home'])
             self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])

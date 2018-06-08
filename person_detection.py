@@ -21,9 +21,8 @@ import struct
 
 
 
-cap=cv2.VideoCapture(0)
-# camera from the computer = 0
-# camera from the drone = 1
+#cap = cv2.VideoCapture(1)
+cap =None
 
 sys.path.append("..")
 
@@ -118,6 +117,9 @@ def main():
             break
     
 if __name__ == "__main__":
-
-  main()
+    if int(sys.argv[1]) == 1:
+        cap = cv2.VideoCapture(1)
+    else:
+        cap = cv2.VideoCapture(0)
+    main()
 

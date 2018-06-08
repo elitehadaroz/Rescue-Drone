@@ -5,6 +5,10 @@ import re
 import tkFileDialog
 from dronekit import Command
 from multiprocessing import Process, Queue
+from firebase import firebase
+import firebase_admin
+from firebase_admin import credentials,auth
+
 
 # the class holding values to drone,like speed altitude etc.
 class Setting:
@@ -15,6 +19,9 @@ class Setting:
                               'set num of cell': 6, 'set min volt per cell': 3.65}
             self.__usb_com = "COM4"
 
+            self.__firebase = firebase.FirebaseApplication('https://rescue-drone.firebaseio.com/locations/', None)
+            self.__firebase_key = credentials.Certificate("rescue-drone-firebase-adminsdk.json")
+            firebase_admin.initialize_app(self.__firebase_key)
             self.start_menu(master)
 
     # create the nav bar menu
@@ -32,6 +39,9 @@ class Setting:
 
         self.setting_mission.add_command(label="upload mission",command=lambda: self.start_window_by_thread("upload mission"))
         self.setting_mission.add_command(label="clean mission",command=self.clean_mission)
+
+        self.user = Menu(self.menu_widget, tearoff=0)
+        self.menu_widget.add_cascade(label="user", command=lambda: self.start_window_by_thread("user"))
 
         master.config(menu=self.menu_widget)
 
@@ -54,6 +64,8 @@ class Setting:
             return None
     def get_usb_com(self):
         return self.__usb_com
+    def get_db(self):
+        return self.__firebase
     def show_setting(self):
             win = Toplevel()
             entries = []
@@ -64,7 +76,7 @@ class Setting:
                 lab = Label(win, width=20, text=key + ": ", anchor='w')
                 ent = Entry(win, width=7,textvariable=v)
 
-                lab.grid(row = row ,columnspan=2,column = 0,padx=10,sticky = W + E )
+                lab.grid(row = row ,columnspan=2, column = 0, padx=10, sticky = W + E )
                 ent.grid(row = row,column = 2,padx=10,pady=5,sticky = E)
                 entries.append((key, ent))
                 row += 1
@@ -77,6 +89,56 @@ class Setting:
             usb_com.grid(row=row, column=2, padx=10, pady=5, sticky=E)
             button_save = Button(win, text='Save', command=lambda: self.save_setting(win,entries,usb_com))
             button_save.grid(row = row+1,column = 1)
+
+    def user_setting(self):
+        win = Toplevel()
+
+        var_email = StringVar()
+        var_passw = StringVar()
+
+        l_email = Label(win, width=10, text="Email: ", anchor='w')
+        v_email = Entry(win, width=25,textvariable = var_email)
+        l_email.grid(row=0, columnspan=1, column=0, padx=10, sticky=W + E)
+        v_email.grid(row=0, column=1,columnspan=2, padx=10, pady=5, sticky=E)
+
+        l_pass = Label(win, width=10, text="Password: ", anchor='w')
+        v_pass = Entry(win, width=25, textvariable = var_passw)
+        l_pass.grid(row=1, columnspan=1, column=0, padx=10, sticky=W + E)
+        v_pass.grid(row=1, column=1,columnspan=2, padx=10, pady=5, sticky=E)
+
+        button_save = Button(win, text='Save',bg='#5CB300', command=lambda: self.save_user( v_email, v_pass))
+        button_save.grid(row=3, column=0, sticky=E )
+        button_del = Button(win, text='Delete',bg='#C70002', command=lambda: self.del_user( v_email, v_pass))
+        button_del.grid(row=3, column=1, sticky=W )
+
+    def save_user(self,email,passw):
+        email_Verifi = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email.get())
+        if email_Verifi == None:
+            self.__gui.show_msg_monitor(">> invalid email", "error")
+        else:
+            try: #the user is in the system
+                user = auth.get_user_by_email(email.get())
+                self.__gui.show_msg_monitor(">> user exsist", "error")
+
+            except: #the user is not in the system
+                try:
+                    user = auth.create_user(
+                        email=email.get(),
+                        email_verified=False,
+                        password=str(passw.get()),
+                        disabled=False)
+                    self.__gui.show_msg_monitor(">> Save user success", "success")
+                except:
+                    self.__gui.show_msg_monitor(">> check your email or password ", "error")
+
+
+    def del_user(self,email,passw):
+        try:
+            user = auth.get_user_by_email(email.get())
+            auth.delete_user(user.uid)
+            self.__gui.show_msg_monitor(">> Successfully deleted user", "success")
+        except:
+            self.__gui.show_msg_monitor(">> user not exsist", "error")
 
     #this function save the values in the self.__setting{}
     def save_setting(self,win,entries,usb_com):
@@ -134,3 +196,6 @@ class Setting:
                 p.start()
                 p.join()
                 self.__missionlist = q.get()
+            elif function_name == 'user':
+                open_window = threading.Thread(name='open_user_window', target=self.user_setting)
+                open_window.start()

@@ -81,6 +81,7 @@ class DroneControl:
 
     #disconnect from vehicle and close process
     def drone_disconnect(self):
+        self.mavlink_connected = False
         if self.vehicle is not None:
             self.vehicle.close()
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
@@ -108,6 +109,7 @@ class DroneControl:
     def rtl_mode(self):
         self.auto_mode_activated = False
         self.manual_mode()
+        self.gui.show_msg_monitor(">> 6 sec to RTL mode...", "msg")
         self.__home_loc.alt = self.setting.get_altitude()
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.flush()
@@ -156,13 +158,15 @@ class DroneControl:
         self.gui.get_image = True  # get picture of person detected
         #info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
         #self.report.set_csv_on_report(info)
-        self.drone_vehicle.rtl_mode()
-        self.vehicle.flush()
+        self.rtl_mode()
+
 
     def send_gps_and_stay(self):
         """need to write function that send gps to server!!!!!!"""
+        self.gui.get_image = True  # get picture of person detected
         self.manual_mode()
         self.vehicle.flush()
+
 
     #return the person detection location
     def get_person_location(self):
@@ -369,26 +373,26 @@ class DroneControl:
                 # connecting to the vehicle by udp- this we can also open the massion planner with the python
                 self.vehicle = connect("127.0.0.1:14550", wait_ready=False, baud=57600) # Connect to the Vehicle.
                 # wait_ready is for that all info from drone upload 100%
-                self.vehicle.wait_ready(True, timeout=60)
+                self.vehicle.wait_ready(True, timeout=70)
         # Bad TCP connection
         except socket.error:
             self.cam_connect = False
-            self.show_msg_monitor(">> No server exists! ", 'error')
+            self.gui.show_msg_monitor(">> No server exists! ", 'error')
             return
         # Bad TTY connection
         except exceptions.OSError as e:
             self.cam_connect = False
-            self.show_msg_monitor(">> No serial exists! ", 'error')
+            self.gui.show_msg_monitor(">> No serial exists! ", 'error')
             return
         # API Error
         except APIException:
             self.cam_connect = False
-            self.show_msg_monitor(">> the Time is out!", 'error')
+            self.gui.show_msg_monitor(">> the Time is out!", 'error')
             return
         # Other error
         except:
             self.cam_connect = False
-            self.show_msg_monitor(">> Some other error! ,check communication", 'error')
+            self.gui.show_msg_monitor(">> Some other error! ,check communication", 'error')
             return
 
         self.gui.show_msg_monitor(">> GPS: %s" % self.vehicle.gps_0, "msg")
