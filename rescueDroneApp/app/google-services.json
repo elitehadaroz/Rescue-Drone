@@ -1,0 +1,59 @@
+{
+  "project_info": {
+    "project_number": "869924761517",
+    "firebase_url": "https://rescue-drone.firebaseio.com",
+    "project_id": "rescue-drone",
+    "storage_bucket": "rescue-drone.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869924761517:android:32e6fb2f31470681",
+        "android_client_info": {
+          "package_name": "finalproject.elite.rescuedroneapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "869924761517-7e4k9t5falsjo2pg3f6ecc5f5dkksngl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "finalproject.elite.rescuedroneapp",
+            "certificate_hash": "b6e8f8faea38a4d0c0a92792399bc873ce944f64"
+          }
+        },
+        {
+          "client_id": "869924761517-brfv44ucn761b6qasi3cl76pkl8p1dfi.apps.googleusercontent.com",
+          "client_type": 3
+        },
+        {
+          "client_id": "869924761517-brfv44ucn761b6qasi3cl76pkl8p1dfi.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDue6yCVisafYU3ULsoww6kSqGiJ8p0-yU"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "869924761517-brfv44ucn761b6qasi3cl76pkl8p1dfi.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
