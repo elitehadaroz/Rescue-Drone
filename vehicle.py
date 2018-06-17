@@ -222,7 +222,7 @@ class DroneControl:
         if self.drone_connected is True:
             if self.vehicle.mode.name is not 'AUTO':
                 if self.auto_mode_activated is False:
-                    if self.command_mission is None:
+                    if self.command_mission is None: #
                         if self.setting.get_missionlist() is not None:
                             self.upload_mission()
                         else:
@@ -486,7 +486,9 @@ class DroneControl:
          info = {'alt': self.vehicle.location.global_relative_frame.alt,
                 'ground_speed':self.vehicle.groundspeed,
                 'dist_home': dist_to_home,
-                'bat': self.vehicle.battery.voltage  }
+                'bat': self.vehicle.battery.voltage,
+                'lon':self.vehicle.location.global_relative_frame.lon,
+                'lat':self.vehicle.location.global_relative_frame.lat}
          return info
 
     #check distance between two point (metres)

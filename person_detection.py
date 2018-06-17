@@ -118,7 +118,7 @@ def main():
     
 if __name__ == "__main__":
     if int(sys.argv[1]) == 1:
-        cap = cv2.VideoCapture(1)
+      cap = cv2.VideoCapture(1)
     else:
         cap = cv2.VideoCapture(0)
     main()

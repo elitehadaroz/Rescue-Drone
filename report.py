@@ -90,7 +90,6 @@ class Report:
 
 
     def create_report_mission(self):
-        print("heloooooooooooo report")
         with open(self.path+'\Report mission.csv','ab') as new_file:
             self.csv_writer = csv.writer(new_file)
             #for key in self.__data_report:
