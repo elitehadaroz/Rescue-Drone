@@ -1,17 +1,18 @@
 # -*- coding: cp1255 -*-
 # -*- coding: utf-8 -*-
 
-#import exceptions
-#import codecs
+import os
+import signal
 import pickle
 import socket
 import struct
 import subprocess
 import threading
-import time
+from multiprocessing import Process
 import vehicle
 import report
 import setting
+import time
 #from pymavlink import mavutil, mavwp
 from Tkinter import *
 #import ttk
@@ -222,40 +223,36 @@ class Gui:
         self.lon_info = Label(self.info, text="00.0000000", font=('Arial', 20), fg="red", bg='#282828')
         self.lon_info.grid(row=5, column=1, padx=10)
 
-        self.lat = Label(self.info, text="Llatitude ", font=('Arial', 10), fg="white", bg='#282828')
+        self.lat = Label(self.info, text="Latitude ", font=('Arial', 10), fg="white", bg='#282828')
         self.lat.grid(row=6, column=1, padx=10)
         self.lat_info = Label(self.info, text="00.0000000", font=('Arial', 20), fg="blue", bg='#282828')
         self.lat_info.grid(row=7, column=1, padx=10)
-
-        self.move_up = Button(self.info, state=DISABLED, text="Up", width=4, height=2, command=self.send_rtl_mode)
-        self.move_up.grid(row=1, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
-        self.move_dwon = Button(self.info, state=DISABLED, text="Dwon", width=4, height=2, command=self.send_rtl_mode)
-        self.move_dwon.grid(row=2, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
-        self.spin_right = Button(self.info, state=DISABLED, text="Spin" + u'\u23f5', width=4, height=2,
-                                 command=self.send_rtl_mode)
-        self.spin_right.grid(row=2, column=4, columnspan=1, sticky=E + N, padx=2, pady=2)
-        self.spin_left = Button(self.info, state=DISABLED, text=u'\u23f4' + "Spin", width=4, height=2,
-                                command=self.send_rtl_mode)
-        self.spin_left.grid(row=2, column=2, columnspan=1, sticky=E + N, padx=2, pady=2)
-
-        self.move_forward = Button(self.info, state=DISABLED, text=u'\u23f6', width=4, height=2,
-                                   command=self.send_rtl_mode)
-        self.move_forward.grid(row=1, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
-        self.move_back = Button(self.info, state=DISABLED, text=u'\u23f7', width=4, height=2,
-                                command=self.send_rtl_mode)
-        self.move_back.grid(row=2, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
-        self.move_right = Button(self.info, state=DISABLED, text=u'\u23f5', width=4, height=2,
-                                 command=self.send_rtl_mode)
-        self.move_right.grid(row=2, column=7, columnspan=1, sticky=N + S, padx=2, pady=2)
-        self.move_left = Button(self.info, state=DISABLED, text=u'\u23f4', width=4, height=2,
-                                command=self.send_rtl_mode)
-        self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=2, pady=2)
 
         self.keyboard_control_bool = BooleanVar()
         button_keyboard_control = Checkbutton(self.drone_control, text="Keyboard \n control", bg='gray',
                                               activebackground='gray', variable=self.keyboard_control_bool,
                                               command=self.show_keyboard_control)
-        button_keyboard_control.grid(row=0, column=0, sticky=W + S ,pady=4)
+        button_keyboard_control.grid(row=0, column=0, sticky=W + S, pady=4)
+
+        self.move_up = Button(self.info, state=DISABLED, text="Up\n W", width=4, height=2)
+        self.move_up.grid(row=1, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
+        self.move_dwon = Button(self.info, state=DISABLED, text="Dwon\n S", width=4, height=2)
+        self.move_dwon.grid(row=2, column=3, columnspan=1, sticky=E + N, padx=2, pady=2)
+        self.spin_right = Button(self.info, state=DISABLED, text="Spin" + u'\u23f5'+"\n D", width=4, height=2)
+        self.spin_right.grid(row=2, column=4, columnspan=1, sticky=E + N, padx=2, pady=2)
+        self.spin_left = Button(self.info, state=DISABLED, text=u'\u23f4' + "Spin\n A", width=4, height=2)
+        self.spin_left.grid(row=2, column=2, columnspan=1, sticky=E + N, padx=2, pady=2)
+
+        self.move_forward = Button(self.info, state=DISABLED, text=u'\u23f6', width=4, height=2)
+        self.move_forward.grid(row=1, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
+        self.move_back = Button(self.info, state=DISABLED, text=u'\u23f7', width=4, height=2)
+        self.move_back.grid(row=2, column=6, columnspan=1, sticky=E + N, padx=2, pady=2)
+        self.move_right = Button(self.info, state=DISABLED, text=u'\u23f5', width=4, height=2)
+        self.move_right.grid(row=2, column=7, columnspan=1, sticky=N + S, padx=2, pady=2)
+        self.move_left = Button(self.info, state=DISABLED, text=u'\u23f4', width=4, height=2)
+        self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=2, pady=2)
+
+
 
     def show_keyboard_control(self):
         """the function shows / hides the button that control drone from keyboard"""
@@ -319,41 +316,51 @@ class Gui:
         if key == 'drone':
             if self.sitl_is_connect is False:
                 if self.drone_is_connect is False:
-                    self.button_connect.config(text="Disconnect",bg='#5CB300')
-                    self.button_connect_sitl.config(state=DISABLED,bg='white')
+                    self.button_connect.config(text="Disconnect", bg='#5CB300')
+                    self.button_connect_sitl.config(state=DISABLED, bg='white')
                     self.drone_is_connect = True
                     self.drone_connect(key, master)
                 else:
-                    if not self.drone_vehicle.vehicle.armed:
-                        self.button_connect.config(text="Connect",bg='#C70002')
-                        self.button_connect_sitl.config(state=NORMAL,bg='#C70002')
-                        self.drone_is_connect = False
-                        self.allow_deny_button('deny')
-                        disconnect_thread = threading.Thread(name='disconnect from drone',
-                                                             target=lambda: self.disconnect(key, master))
-                        disconnect_thread.start()
+                    if self.drone_vehicle.drone_connected is True:
+                        if self.drone_vehicle.vehicle.armed is False:
+                            self.button_connect.config(text="Connect", bg='#C70002')
+                            self.button_connect_sitl.config(state=NORMAL, bg='#C70002')
+                            self.drone_is_connect = False
+                            self.allow_deny_button('deny')
+                            disconnect_thread = threading.Thread(name='disconnect from drone',
+                                                                 target=lambda: self.disconnect(key, master))
+                            disconnect_thread.start()
+                        else:
+                            self.show_msg_monitor(">> Attention! You have to land the drone before Disconnect", "error")
                     else:
-                        self.show_msg_monitor(">> Attention! You have to land the drone before Diconnect","error")
+                        self.show_msg_monitor(
+                            ">> The system is in process of connecting, please wait for connection and then Disconnect",
+                            "error")
             else:
                 self.show_msg_monitor(">> please disconnect from the SITL , and try again", "msg")
         else:
             if self.drone_is_connect is False:
                 if self.sitl_is_connect is False:
-                    print(self.setting.get_usb_com())
-                    self.button_connect_sitl.config(text="Disconnect\nSITL",bg='#5CB300')
-                    self.button_connect.config(state=DISABLED,bg='white')
+                    self.button_connect_sitl.config(text="Disconnect\nSITL", bg='#5CB300')
+                    self.button_connect.config(state=DISABLED, bg='white')
                     self.sitl_is_connect = True
                     self.drone_connect(key, master)
                 else:
-                    if not self.drone_vehicle.vehicle.armed:
-                        self.button_connect_sitl.config(text="ConnectSITL",bg='#C70002')
-                        self.button_connect.config(state=NORMAL,bg='#C70002')
-                        self.sitl_is_connect = False
-                        self.allow_deny_button('deny')
-                        disconnect_thread = threading.Thread(name='disconnect from sitl',target=lambda:self.disconnect(key,master))
-                        disconnect_thread.start()
+                    if self.drone_vehicle.drone_connected is True:
+                        if self.drone_vehicle.vehicle.armed is False:
+                            self.button_connect_sitl.config(text="ConnectSITL", bg='#C70002')
+                            self.button_connect.config(state=NORMAL, bg='#C70002')
+                            self.sitl_is_connect = False
+                            self.allow_deny_button('deny')
+                            disconnect_thread = threading.Thread(name='disconnect from sitl',
+                                                                 target=lambda: self.disconnect(key, master))
+                            disconnect_thread.start()
+                        else:
+                            self.show_msg_monitor(">> Attention! You have to land the drone before Disconnect", "error")
                     else:
-                        self.show_msg_monitor(">> Attention! You have to land the drone before Diconnect", "error")
+                        self.show_msg_monitor(
+                            ">> The system is in process of connecting, please wait for connection and then Disconnect",
+                            "error")
             else:
                 self.show_msg_monitor(">> please disconnect from the drone , and try again", "msg")
 
@@ -382,7 +389,7 @@ class Gui:
             self.drone_is_connect = False  # change the bool drone to false,is mean that drone now is not connected
 
         elif key == 'sitl':
-            self.show_msg_monitor(">> Sitl is disconnected", "msg")
+            #self.show_msg_monitor(">> Sitl is disconnected", "msg")
             self.drone_vehicle.sitl_disconnect()
             self.sitl_is_connect = False  # change the bool sitl to false,is mean that sitl now is not connected
 
@@ -408,14 +415,25 @@ class Gui:
 
     def on_closing(self,master):
         """if the user close the swoftwer from X button,this function close all threads and process and close thr gui"""
-        if self.drone_is_connect is True :
-            self.switch_on_off(master,'drone') #disconnect drone.
-            time.sleep(3)
-            root.destroy()
-        elif self.sitl_is_connect is True:
-            self.switch_on_off(master,'sitl') #disconnect sitl
-            time.sleep(3)
-            root.destroy()
+        if self.drone_vehicle.drone_connected is True:
+            if self.drone_vehicle.vehicle.armed is False:
+                os.kill(os.getpid(), signal.SIGTERM)
+                """
+                if self.drone_is_connect is True :
+                    self.switch_on_off(master,'drone') #disconnect drone.
+                    time.sleep(3)
+                    root.destroy()
+                elif self.sitl_is_connect is True:
+                    close_sitl = Process(target=self.switch_on_off(master,'sitl'))
+                    close_sitl.daemon = True
+                    close_sitl.start()
+                    close_sitl.join()
+                    #self.switch_on_off(master,'sitl') #disconnect sitl
+                    #time.sleep(3)
+                    root.destroy()
+                """
+            else:
+                self.show_msg_monitor(">> You can not exit from rescue drone before the drone land! ", 'error')
         else:
             root.destroy()
             return
@@ -482,12 +500,14 @@ class Gui:
             if self.get_image:
                 self.repo.set_image(last_frame)
                 self.get_image =False
-            img = Image.fromarray(last_frame)
+
             try:
+                img = Image.fromarray(last_frame)
                 imgtk = ImageTk.PhotoImage(image=img)
-                self.video_window.configure(image=imgtk)
+
             except:
                 continue
+            self.video_window.configure(image=imgtk)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 cv2.destroyAllWindows()
                 break
@@ -511,14 +531,13 @@ class Gui:
                 middle_button ="send GPS and stay"
                 msg_detail = {'message': text_message, 'key': key, 'yes_b':yes_button, 'mid_b':middle_button, 'no_b':no_button}
                 self.create_message_box(msg_detail)
-                sound_bool = BooleanVar()
-
-                start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda: self.start_alarm(sound_bool))
-                start_alarm.start()
-
-                button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool,bg='#E5C100')
+                """
+                self.sound_bool = BooleanVar()
+                button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=self.sound_bool,bg='#E5C100')
                 button_sound_on_oof.grid(row=1, column=0)
-
+                start_alarm = threading.Thread(name="start_the_alarm_person_detect", target=lambda :self.start_alarm(self.sound_bool))
+                start_alarm.start()
+                """
             if key == "low voltage":    #msg if the battery voltage is low.
                 if  self.low_battery is True:
                     text_message = "LOW BATTERY !\n low battery voltage, return home.\n  "
@@ -526,14 +545,20 @@ class Gui:
                     no_button = "continue to search"
                     msg_detail = {'message': text_message, 'key': key, 'yes_b': yes_button,'no_b': no_button}
                     self.create_message_box(msg_detail)
+                    """
                     sound_bool = BooleanVar()
-
-                    start_alarm = threading.Thread(name="start_the_alarm_low_batt",
-                                                   target=lambda: self.start_alarm(sound_bool))
-                    start_alarm.start()
-
                     button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool,bg='#E5C100')
                     button_sound_on_oof.grid(row=1, column=0)
+                    start_alarm = threading.Thread(name="start_the_alarm_low_batt",target=lambda: self.start_alarm(sound_bool))
+                    start_alarm.start()
+                    """
+            sound_bool = BooleanVar()
+            button_sound_on_oof = Checkbutton(self.message_box, text="sound on/off", variable=sound_bool,bg='#E5C100')
+            button_sound_on_oof.grid(row=1, column=0)
+            start_alarm = threading.Thread(name="start_the_alarm_person_detect",target=lambda: self.start_alarm(sound_bool))
+            start_alarm.start()
+
+
 
     def create_message_box(self,msg_detail):
         """the functionf get a msg template from show_msg_user and show the msg"""
@@ -579,13 +604,14 @@ class Gui:
                 #self.message_box.destroy()
 
             else:   #send gps and stay in position
-                #self.repo.set_image()
-                self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "send gps and stay,time:"+time.strftime("%H:%M:%S"))
+                self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and stay,time:" + time.strftime("%H:%M:%S"))
                 self.person_location_todb(self.drone_vehicle.get_person_location())
-                self.drone_vehicle.send_gps_and_stay()
-            #self.message_box.destroy()
-            #self.message_box_pop =False
-            check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation) #check when possible again alarm operation
+                send_gps_stay_thread = threading.Thread(name="send_gps_stay_thread",target=self.drone_vehicle.send_gps_and_stay)  # check when possible again alarm operation
+                send_gps_stay_thread.start()
+                #self.drone_vehicle.send_gps_and_stay()
+                # self.message_box.destroy()
+                # self.message_box_pop =False
+            check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation)  # check when possible again alarm operation
             check_alarm_operation_again.start()
 
         if key == 'low voltage':
@@ -609,6 +635,7 @@ class Gui:
         self.low_battery = False
 
     def person_location_todb(self,location):
+        print(location)
         self.setting.get_db().patch('location' + str(self.__count_person), {'longitude': location.lon, 'latitude': location.lat})
         self.__count_person +=1
 
@@ -668,14 +695,16 @@ class Gui:
 
             if parm['ground_speed'] > max_speed:
                 max_speed = parm['ground_speed']
-
-            self.altitude_info.config(text="%.2f" % parm['alt'])
-            self.bat_volt_info.config(text="%.2f" % parm['bat'])
-            self.dist_to_home_info.config(text="%.2f" % parm['dist_home'])
-            self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])
-            self.time_air_info.config(text=ck)
-            self.lon_info.config(text ="%.7f" % parm['lon'])
-            self.lat_info.config(text="%.7f" % parm['lat'])
+            try:
+                self.altitude_info.config(text="%.2f" % parm['alt'])
+                self.bat_volt_info.config(text="%.2f" % parm['bat'])
+                self.dist_to_home_info.config(text="%.2f" % parm['dist_home'])
+                self.ground_speed_info.config(text="%.2f" % parm['ground_speed'])
+                self.time_air_info.config(text=ck)
+                self.lon_info.config(text ="%.7f" % parm['lon'])
+                self.lat_info.config(text="%.7f" % parm['lat'])
+            except:
+                continue
 
     def min_battery_voltage(self):
         """clculate the minimum voltage on the battery"""
@@ -685,64 +714,70 @@ class Gui:
     def start_alarm (self,sound_bool):
         """the function call from show_msg_user and only on/off alarm when person detect"""
         while self.message_box_pop:
-            if sound_bool.get() == False:
-                PlaySound('media\Alarm.wav', SND_FILENAME)
-                time.sleep(2)
-            else:
+            try:
+                if sound_bool.get() is False:
+                    PlaySound('media\Alarm.wav', SND_FILENAME)
+                    time.sleep(2)
+                else:
+                    continue
+            except:
                 continue
 
     def key(self,event):
         """the function get event key from keyboard and send command to drone accordingly the key"""
         gnd_speed = self.setting.get_manu_speed()  # [m/s] ->meter/second
+        if self.keyboard_control_bool.get() is True and self.drone_vehicle.drone_connected is True:
+            if self.drone_vehicle.vehicle.armed is True and self.drone_vehicle.vehicle.mode.name is 'GUIDED':
+                if event.char == event.keysym:  # -- standard keys
+                    if event.keysym == 's':     #dwon
+                        self.move_dwon.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, 0, gnd_speed,0)
+                        self.move_dwon.after(100, lambda: self.move_dwon.config(relief=RAISED))
+                    elif event.keysym == 'w' :   #up
+                        print("hiiii")
+                        self.move_up.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, 0, -gnd_speed,0)
+                        self.move_up.after(100, lambda: self.move_up.config(relief=RAISED))
+                    elif event.keysym == 'd':   #yaw right
+                        self.spin_right.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, 0, 0,1,'yaw')
+                        self.spin_right.after(100, lambda: self.spin_right.config(relief=RAISED))
+                    elif event.keysym == 'a':   #yaw left
+                        self.spin_left.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, 0, 0, -1,'yaw')
+                        self.spin_left.after(100, lambda: self.spin_left.config(relief=RAISED))
+                    elif event.keysym == 'u':
+                        self.button_auto.config(relief = SUNKEN)
+                        self.send_auto_mode()
+                        self.button_auto.after(100, lambda: self.button_auto.config(relief=RAISED))
 
-        if self.keyboard_control_bool.get() is True and self.drone_vehicle.vehicle.armed is True:
-            if event.char == event.keysym:  # -- standard keys
-                if event.keysym == 's':     #dwon
-                    self.move_dwon.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, 0, gnd_speed,0)
-                    self.move_dwon.after(100, lambda: self.move_dwon.config(relief=RAISED))
-                elif event.keysym == 'w':   #up
-                    self.move_up.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, 0, -gnd_speed,0)
-                    self.move_up.after(100, lambda: self.move_up.config(relief=RAISED))
-                elif event.keysym == 'd':   #yaw right
-                    self.spin_right.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, 0, 0,1,'yaw')
-                    self.spin_right.after(100, lambda: self.spin_right.config(relief=RAISED))
-                elif event.keysym == 'a':   #yaw left
-                    self.spin_left.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, 0, 0, -1,'yaw')
-                    self.spin_left.after(100, lambda: self.spin_left.config(relief=RAISED))
-                elif event.keysym == 'u':
-                    self.button_auto.config(relief = SUNKEN)
-                    self.send_auto_mode()
-                    self.button_auto.after(100, lambda: self.button_auto.config(relief=RAISED))
 
 
-
-            else:  # -- non standard keys
-                if event.keysym == 'Up':    #forward
-                    self.move_forward.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body( gnd_speed, 0, 0,0)
-                    self.move_forward.after(100, lambda: self.move_forward.config(relief=RAISED))
-                elif event.keysym == 'Down':    #backwards
-                    self.move_back.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(-gnd_speed, 0, 0,0)
-                    self.move_back.after(100, lambda: self.move_back.config(relief=RAISED))
-                elif event.keysym == 'Left':    #left
-                    self.move_left.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, -gnd_speed, 0,0)
-                    self.move_left.after(100, lambda: self.move_left.config(relief=RAISED))
-                elif event.keysym == 'Right':   #right
-                    self.move_right.config(relief=SUNKEN)
-                    self.drone_vehicle.set_velocity_body(0, gnd_speed, 0,0)
-                    self.move_right.after(100, lambda: self.move_right.config(relief=RAISED))
+                else:  # -- non standard keys
+                    if event.keysym == 'Up':    #forward
+                        self.move_forward.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body( gnd_speed, 0, 0,0)
+                        self.move_forward.after(100, lambda: self.move_forward.config(relief=RAISED))
+                    elif event.keysym == 'Down':    #backwards
+                        self.move_back.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(-gnd_speed, 0, 0,0)
+                        self.move_back.after(100, lambda: self.move_back.config(relief=RAISED))
+                    elif event.keysym == 'Left':    #left
+                        self.move_left.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, -gnd_speed, 0,0)
+                        self.move_left.after(100, lambda: self.move_left.config(relief=RAISED))
+                    elif event.keysym == 'Right':   #right
+                        self.move_right.config(relief=SUNKEN)
+                        self.drone_vehicle.set_velocity_body(0, gnd_speed, 0,0)
+                        self.move_right.after(100, lambda: self.move_right.config(relief=RAISED))
 
     def aplly_key(self,event):
         """apply keyboard control"""
-        key_button = threading.Thread(name="key_button", target=lambda :self.key(event))  # check when possible again alarm operation
-        key_button.start()
-
+        if self.drone_vehicle.drone_connected is True:
+            key_button = threading.Thread(name="key_button", target=lambda :self.key(event))  # check when possible again alarm operation
+            key_button.start()
+        else:
+            self.show_msg_monitor(">> Only in manual mode", "msg")
     def clean_missions(self):
         """clean mission from the drone"""
         self.drone_vehicle.clean_missions()

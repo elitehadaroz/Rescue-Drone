@@ -8,7 +8,7 @@ from multiprocessing import Process, Queue
 from firebase import firebase
 import firebase_admin
 from firebase_admin import credentials,auth
-
+from collections import OrderedDict
 
 # the class holding values to drone,like speed altitude etc.
 class Setting:
@@ -16,7 +16,7 @@ class Setting:
             self.__gui = gui
             self.__missionlist = None
             self.__setting = {'set altitude(meter)': 7, 'set AUTO speed(c\s)': 200, 'set MANU speed(m\s)': 1,
-                              'set num of cell': 6, 'set min volt per cell': 3.65}
+                              'set num of cell': 6, 'set min volt per cell': 3.65,'set lat for sitl':31.7965240478516 , 'set lon for sitl':35.3291511535645}
             self.__usb_com = "COM4"
 
             self.__firebase = firebase.FirebaseApplication('https://rescue-drone.firebaseio.com/locations/', None)
@@ -44,7 +44,10 @@ class Setting:
         self.menu_widget.add_cascade(label="user", command=lambda: self.start_window_by_thread("user"))
 
         master.config(menu=self.menu_widget)
-
+    def get_sitl_lon(self):
+        return self.__setting['set lon for sitl']
+    def get_sitl_lat(self):
+        return self.__setting['set lat for sitl']
     def get_altitude(self):
             return self.__setting['set altitude(meter)']
     def get_auto_speed(self):
@@ -70,11 +73,14 @@ class Setting:
             win = Toplevel()
             entries = []
             row = 0
+            #sorted(self.__setting.items(), key=lambda kv: kv[1], reverse=True)
+            self.__setting  = OrderedDict(sorted(self.__setting.items(), key=lambda v: v, reverse=True))
+            print(self.__setting)
             for key in self.__setting.keys():
                 v = IntVar()
                 v.set(self.__setting[key])
                 lab = Label(win, width=20, text=key + ": ", anchor='w')
-                ent = Entry(win, width=7,textvariable=v)
+                ent = Entry(win, width=15,textvariable=v)
 
                 lab.grid(row = row ,columnspan=2, column = 0, padx=10, sticky = W + E )
                 ent.grid(row = row,column = 2,padx=10,pady=5,sticky = E)

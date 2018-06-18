@@ -1,5 +1,6 @@
 import threading
 import subprocess
+import signal
 from subprocess import PIPE
 import socket
 import time
@@ -7,7 +8,7 @@ from pymavlink import mavutil, mavwp
 from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 import exceptions
 import math
-
+import os
 class DroneControl:
     def __init__(self, gui_obj,repo_obj,setting_obj):
         self.mavlink_connected = False
@@ -27,7 +28,7 @@ class DroneControl:
         self.__home_loc = None
         self.__person_location = None
         self.__insert_end_mission = False
-
+        self.dronekit_process = None
     #connect with mavproxy and split the data
     def mav_proxy_connect(self):
         self.gui.show_msg_monitor(">> start to connect mavProxy,please wait...", "msg")
@@ -35,6 +36,7 @@ class DroneControl:
         #connect to mavproxy to master usb and split to two udp port
         mav_proxy = 'mavproxy.py --master="'+self.setting.get_usb_com()+'" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
         #mav_proxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
+
         self.mavlink_proc = subprocess.Popen(mav_proxy, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
 
         time.sleep(1)
@@ -84,6 +86,7 @@ class DroneControl:
         self.mavlink_connected = False
         if self.vehicle is not None:
             self.vehicle.close()
+            self.vehicle = None
         self.gui.show_msg_monitor(">> Disconnects from the drone...", "msg")
         self.mavlink_time_out = False  # reset the timer to connection
         self.cam_connect = False
@@ -109,7 +112,7 @@ class DroneControl:
     def rtl_mode(self):
         self.auto_mode_activated = False
         self.manual_mode()
-        self.gui.show_msg_monitor(">> 6 sec to RTL mode...", "msg")
+        self.gui.show_msg_monitor(">> 2 sec to RTL mode...", "msg")
         self.__home_loc.alt = self.setting.get_altitude()
         self.vehicle.simple_goto(self.__home_loc)
         self.vehicle.flush()
@@ -155,7 +158,7 @@ class DroneControl:
 
     def send_gps_and_rtl(self):
         """need to write function that send gps to server!!!!!!"""
-        self.gui.get_image = True  # get picture of person detected
+        #self.gui.get_image = True  # get picture of person detected
         #info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
         #self.report.set_csv_on_report(info)
         self.rtl_mode()
@@ -163,7 +166,7 @@ class DroneControl:
 
     def send_gps_and_stay(self):
         """need to write function that send gps to server!!!!!!"""
-        self.gui.get_image = True  # get picture of person detected
+        #self.gui.get_image = True  # get picture of person detected
         self.manual_mode()
         self.vehicle.flush()
 
@@ -304,7 +307,7 @@ class DroneControl:
 
     def read_waypoint_live(self):
         nextwaypoint = self.vehicle.commands.next
-        while nextwaypoint < len(self.vehicle.commands):
+        while nextwaypoint < len(self.vehicle.commands) and self.vehicle.armed :
             if self.vehicle.commands.next > nextwaypoint:
                 display_seq = self.vehicle.commands.next
                 point_num = "Moving to waypoint %s" % display_seq
@@ -410,48 +413,39 @@ class DroneControl:
 
 
     def connecting_sitl(self):
-        """"
-        print("blaaaaa blaaa blaaaaas")
         self.cam_connect = True
-        drone_kit_sitl = 'dronekit-sitl copter --home=31.7965240478516,35.3291511535645,248.839996337891,240'
-        self.dronekit_process = subprocess.Popen(drone_kit_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
-        print("self.dronekit_process",self.dronekit_process.pid)
-        #mavproxy_sitl_thread = threading.Thread(name='start mavProxy sitl', target=self.connection_mavproxy_sitl)
-        #mavproxy_sitl_thread.start()
-        #time.sleep(4)
+        #drone_kit_sitl = 'dronekit-sitl copter --home=31.7965240478516,35.3291511535645,248.839996337891,240'
+        drone_kit_sitl = 'dronekit-sitl copter --home='+str(self.setting.get_sitl_lat())+','+str(self.setting.get_sitl_lon())+',248.839996337891,240'
+        self.dronekit_process = subprocess.Popen(drone_kit_sitl, shell=True, stdin=PIPE)
+        time.sleep(2)
         mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
-        self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
-        print("self.dronekit_process", self.mavProxy_sitl_proc.pid)
-        print("im in mavproxy sitl connection")
-        #time.sleep(3)
-        """
+        self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE)
+        time.sleep(2)
         self.connecting_drone('sitl')
-    """
-    def connection_mavproxy_sitl(self):
-        time.sleep(4)
-        mav_proxy_sitl = 'mavproxy.py --master=tcp:127.0.0.1:5760 --sitl 127.0.0.1:5501 --out=udpout:127.0.0.1:14550 --out=udpout:127.0.0.1:14551 '
-        self.mavProxy_sitl_proc = subprocess.Popen(mav_proxy_sitl, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
-        print("self.dronekit_process", self.mavProxy_sitl_proc.pid)
-        print("im in mavproxy sitl connection")
-        time.sleep(3)
-        self.connecting_drone('sitl')
-    """
+
 
     #disconnect from sitl mode,close process and close communication,the function call from disconnect function in GUI class
     def sitl_disconnect(self):
+        if self.vehicle is not None:
+            self.vehicle.close()
+            self.vehicle = None
         self.cam_connect = False
         self.drone_connected = False
-        #search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
+        #os.kill(os.getpid(), signal.SIGTERM)
 
-        #port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
-        #if port_pid_task is not None:
-            #port_pid = port_pid_task[len(port_pid_task) - 1]
-            #subprocess.Popen('taskkill /F /T /PID ' + port_pid, shell=True)
+        search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
 
-        #if self.mavProxy_sitl_proc is not None:
-            #pid_mavproxy_sitl_proc = self.mavProxy_sitl_proc.pid
-            #subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
+        port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
+        if port_pid_task is not None:
+            port_pid = port_pid_task[len(port_pid_task) - 1]
+            subprocess.Popen('taskkill /F /T /PID ' + port_pid, shell=True)
 
+        if self.mavProxy_sitl_proc is not None:
+            pid_mavproxy_sitl_proc = self.mavProxy_sitl_proc.pid
+            subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
+
+        #os.kill(self.dronekit_process.pid, signal.SIGTERM)
+        os.kill(search_pid_port.pid, signal.SIGTERM)
 
     #when person detection the function switch from auto mode to manual mode and:
     # 1)show msg in monitor that person detection
@@ -466,6 +460,9 @@ class DroneControl:
                 self.manual_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
+                print("hiiii person")
+                print(self.vehicle.location.global_relative_frame)
+                print("hiiii person")
                 self.__person_location = self.vehicle.location.global_relative_frame
                 self.report.set_time_detection(time.strftime("%H:%M:%S"))
                 self.gui.get_image_function()
@@ -476,9 +473,12 @@ class DroneControl:
     #need to create distance detection in setting class!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     #the function resets the detection option after a specified distance,to alarm again.call from user_reply_message function in GUI class
     def check_alarm_operation(self):
-        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15:
+
+        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15 :
             time.sleep(1)
         self.person_is_detect = False
+
+
 
     #the function read information from drone,call from get_parm_drone function in GUI class
     def get_info_drone(self):
