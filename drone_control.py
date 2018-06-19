@@ -13,16 +13,10 @@ import vehicle
 import report
 import setting
 import time
-#from pymavlink import mavutil, mavwp
 from Tkinter import *
-#import ttk
 from mttkinter import mtTkinter
-#from subprocess import PIPE
-#from multiprocessing import Process
-#import tkMessageBox
 import cv2
 from PIL import Image, ImageTk
-#from dronekit import connect, VehicleMode, APIException ,Command  # Import DroneKit-Python
 from winsound import *
 
 ############################################# person detection ##############################################################
@@ -128,12 +122,12 @@ class Gui:
         self.drone_control.grid(row=0, column=1, columnspan=5, sticky=W + N + E + S)
 
         """button connect to drone"""
-        self.button_connect = Button(self.drone_control, text="Connect", width=9, height=2,bg='#C70002',fg='WHITE',
+        self.button_connect = Button(self.drone_control, text="Drone \nConnect", width=9, height=2,bg='#C70002',fg='WHITE',
                                      command=lambda: self.switch_on_off(master, 'drone'))
         self.button_connect.grid(row=0, column=1, sticky=W + N, pady=4)
 
         """button connect to SITL"""
-        self.button_connect_sitl = Button(self.drone_control, text="Connect\nSITL", width=9, height=2,bg='#C70002',fg='WHITE',#5CB300
+        self.button_connect_sitl = Button(self.drone_control, text="Sitl \nConnect", width=9, height=2,bg='#C70002',fg='WHITE',#5CB300
                                           command=lambda: self.switch_on_off(master, 'sitl'))
         self.button_connect_sitl.grid(row=0, column=0, sticky=W + N, padx=4, pady=4)
 
@@ -252,8 +246,6 @@ class Gui:
         self.move_left = Button(self.info, state=DISABLED, text=u'\u23f4', width=4, height=2)
         self.move_left.grid(row=2, column=5, columnspan=1, sticky=E + N, padx=2, pady=2)
 
-
-
     def show_keyboard_control(self):
         """the function shows / hides the button that control drone from keyboard"""
 
@@ -316,14 +308,14 @@ class Gui:
         if key == 'drone':
             if self.sitl_is_connect is False:
                 if self.drone_is_connect is False:
-                    self.button_connect.config(text="Disconnect", bg='#5CB300')
+                    self.button_connect.config(text="Drone \nDisconnect", bg='#5CB300')
                     self.button_connect_sitl.config(state=DISABLED, bg='white')
                     self.drone_is_connect = True
                     self.drone_connect(key, master)
                 else:
                     if self.drone_vehicle.drone_connected is True:
                         if self.drone_vehicle.vehicle.armed is False:
-                            self.button_connect.config(text="Connect", bg='#C70002')
+                            self.button_connect.config(text="Drone \nConnect", bg='#C70002')
                             self.button_connect_sitl.config(state=NORMAL, bg='#C70002')
                             self.drone_is_connect = False
                             self.allow_deny_button('deny')
@@ -341,14 +333,14 @@ class Gui:
         else:
             if self.drone_is_connect is False:
                 if self.sitl_is_connect is False:
-                    self.button_connect_sitl.config(text="Disconnect\nSITL", bg='#5CB300')
+                    self.button_connect_sitl.config(text="Sitl \nDisconnect", bg='#5CB300')
                     self.button_connect.config(state=DISABLED, bg='white')
                     self.sitl_is_connect = True
                     self.drone_connect(key, master)
                 else:
                     if self.drone_vehicle.drone_connected is True:
                         if self.drone_vehicle.vehicle.armed is False:
-                            self.button_connect_sitl.config(text="ConnectSITL", bg='#C70002')
+                            self.button_connect_sitl.config(text="Sitl \nConnect", bg='#C70002')
                             self.button_connect.config(state=NORMAL, bg='#C70002')
                             self.sitl_is_connect = False
                             self.allow_deny_button('deny')
@@ -592,8 +584,6 @@ class Gui:
             if answer == 'yes': #send gps and rtl
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and rtl,time:"+time.strftime("%H:%M:%S"))
                 self.person_location_todb(self.drone_vehicle.get_person_location())
-                #self.send_rtl_mode()
-                #self.message_box.destroy()
                 rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
                 rtl.start()
 
@@ -601,16 +591,13 @@ class Gui:
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(), "return to search,time:"+time.strftime("%H:%M:%S"))
                 self.show_msg_monitor(">> Return to search", "msg")
                 self.send_auto_mode()
-                #self.message_box.destroy()
 
             else:   #send gps and stay in position
                 self.repo.set_person_loc(self.drone_vehicle.get_person_location(),"send gps and stay,time:" + time.strftime("%H:%M:%S"))
                 self.person_location_todb(self.drone_vehicle.get_person_location())
                 send_gps_stay_thread = threading.Thread(name="send_gps_stay_thread",target=self.drone_vehicle.send_gps_and_stay)  # check when possible again alarm operation
                 send_gps_stay_thread.start()
-                #self.drone_vehicle.send_gps_and_stay()
-                # self.message_box.destroy()
-                # self.message_box_pop =False
+
             check_alarm_operation_again = threading.Thread(name="check_alarm_operation",target=self.drone_vehicle.check_alarm_operation)  # check when possible again alarm operation
             check_alarm_operation_again.start()
 

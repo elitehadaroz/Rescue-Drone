@@ -10,66 +10,53 @@ class Report:
         self.path = None
         self.image_num = 0
         self.csv_writer =None
-        #self.create_folder()
         self.__data_report = OrderedDict()
         self.__data_report = {'date':'','start mission':'','time connect':'','end mission':'','home location':'',
                               'air time':'','number of waypoint':'','max altitude':'','speed':'','persons location':[]}
-        #self.__data_report = {}
         self.__num_of_person = 0
         self.__time_detection = ""
 
 
-    def set_date(self):########
-        #self.__data_report.get('date')
-        self.__data_report['date'] = time.strftime("%d/%m/%Y")
-        #self.__date = ["date",time.strftime("%d/%m/%Y")]
+    def set_date(self):
 
-    def set_home_location(self,loc):#####################
-        #self.__home_location = ["home location:","lat:",loc.lat,"lon:",loc.lon]
-        #self.__data_report.get('home location')
+        self.__data_report['date'] = time.strftime("%d/%m/%Y")
+
+
+    def set_home_location(self,loc):
+
         self.__data_report['home location'] = ["lat:",loc.lat,"lon:",loc.lon]
 
-    def set_drone_connect_time(self,time):##################
-        #self.__drone_connect_time = ["time connect",time]
-        #self.__data_report.get("time connect")
-        self.__data_report["time connect"] =  time
+    def set_drone_connect_time(self,time_c):
 
-    def set_start_mission(self,start):##################
-        #self.__start_mission = ["Start mission",start]
-        #self.__data_report.get("start mission")
+        self.__data_report["time connect"] =  time_c
+
+    def set_start_mission(self,start):
+
         self.__data_report["start mission"] = start
 
-    def set_end_mission(self,end):####################
-        #self.__end_mission = ["End mission",end]
-        #self.__data_report.get('end mission')
+    def set_end_mission(self,end):
+
         self.__data_report['end mission'] = end
 
-    def set_air_time(self,time):####################
-        #self.__air_time = ["Air time",time]
-        #self.__data_report.get('air time')
-        self.__data_report['air time'] = time
+    def set_air_time(self,time_a):
 
-    def set_num_waypoint(self,num):#####################
-        #self.__number_waypoint = ["number of waypoint",num]
-        #self.__data_report.get('number of waypoint')
+        self.__data_report['air time'] = time_a
+
+    def set_num_waypoint(self,num):
+
         self.__data_report['number of waypoint'] =  num
 
-    def set_max_alt(self,alt):#####################3
-        #self.__max_altitude = ["Max altitude",alt]
-        #self.__data_report.get('number of waypoint')
+    def set_max_alt(self,alt):
+
         self.__data_report['max altitude'] = alt
 
-    def set_top_speed(self,speed):###################
-        #self.__top_speed = ["speed",speed]
-        #self.__data_report.get('speed')
+    def set_top_speed(self,speed):
+
         self.__data_report['speed'] = speed
 
     def set_person_loc(self,loc,name):
         person =["person"+ str(self.__num_of_person) + "," + name,"lat:",str(loc.lat),"lon:",str(loc.lon),"time detection:",str(self.__time_detection)]
-        #this = self.__data_report.get('persons location',[])
         self.__data_report['persons location'].append(person)
-        #self.__data_report['persons test'] += person
-        #self.__persons_location.append(person)
         self.__num_of_person += 1
 
     def set_time_detection(self,time_de):
@@ -89,15 +76,9 @@ class Report:
         self.set_date()
 
 
-    def create_report_mission(self):
+    def create_report_mission(self): #write to cvs file all the info
         with open(self.path+'\Report mission.csv','ab') as new_file:
             self.csv_writer = csv.writer(new_file)
-            #for key in self.__data_report:
-                #if key != 'persons location':
-                    #data = [key,self.__data_report[key]]
-                    #print("1")
-                    #self.csv_writer.writerow(data)
-
             self.csv_writer.writerow(['date',self.__data_report['date']])
             self.csv_writer.writerow(['time connect', self.__data_report['time connect']])
             self.csv_writer.writerow(['start mission', self.__data_report['start mission']])

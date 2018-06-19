@@ -93,9 +93,7 @@ def main():
             if name_type[0] is not None :
               MESSAGE=(name_type[0]['name']) #name of type detection
               sys.stdout.write(MESSAGE+ "\n")
-              #print(MESSAGE)
               sys.stdout.flush()
-              #sock.sendto(MESSAGE.encode('utf-8'), (UDP_IP, UDP_PORT))   
               if name_type[0]['name'] == "person" and len(name_type) == 1:
                 vis_util.visualize_boxes_and_labels_on_image_array(
                 image_np,
@@ -106,9 +104,9 @@ def main():
                 use_normalized_coordinates=True,
                 line_thickness=8)
 
-          data = pickle.dumps(image_np,protocol=1) ### new code
+          data = pickle.dumps(image_np,protocol=1)
           try:
-            clientsocket.sendall(struct.pack("L", len(data)) + data)  ### new code
+            clientsocket.sendall(struct.pack("L", len(data)) + data)
           except socket.error:
 
             break

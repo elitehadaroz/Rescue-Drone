@@ -16,7 +16,7 @@ class Setting:
             self.__gui = gui
             self.__missionlist = None
             self.__setting = {'set altitude(meter)': 7, 'set AUTO speed(c\s)': 200, 'set MANU speed(m\s)': 1,
-                              'set num of cell': 6, 'set min volt per cell': 3.65,'set lat for sitl':31.7965240478516 , 'set lon for sitl':35.3291511535645}
+                              'set num of cell': 6, 'set min volt per cell': 3.65,'set lat for sitl':31.7965240478516 , 'set lon for sitl':35.3291511535645,'distance detection(m)': 15}
             self.__usb_com = "COM4"
 
             self.__firebase = firebase.FirebaseApplication('https://rescue-drone.firebaseio.com/locations/', None)
@@ -48,6 +48,8 @@ class Setting:
         return self.__setting['set lon for sitl']
     def get_sitl_lat(self):
         return self.__setting['set lat for sitl']
+    def get_distance_detection(self):
+        return self.__setting['distance detection']
     def get_altitude(self):
             return self.__setting['set altitude(meter)']
     def get_auto_speed(self):
@@ -70,16 +72,16 @@ class Setting:
     def get_db(self):
         return self.__firebase
     def show_setting(self):
-            win = Toplevel()
+            win = Toplevel(bg='#282828')
+            win.resizable(width=False, height=False)
             entries = []
             row = 0
-            #sorted(self.__setting.items(), key=lambda kv: kv[1], reverse=True)
             self.__setting  = OrderedDict(sorted(self.__setting.items(), key=lambda v: v, reverse=True))
-            print(self.__setting)
+
             for key in self.__setting.keys():
                 v = IntVar()
                 v.set(self.__setting[key])
-                lab = Label(win, width=20, text=key + ": ", anchor='w')
+                lab = Label(win, width=20, text=key + ": ", anchor='w',fg='white',bg='#282828')
                 ent = Entry(win, width=15,textvariable=v)
 
                 lab.grid(row = row ,columnspan=2, column = 0, padx=10, sticky = W + E )
@@ -89,33 +91,33 @@ class Setting:
 
             v = IntVar()
             v.set(self.__usb_com)
-            lab_usb = Label(win, width=20, text="drone connect usb COM: ", anchor='w')
+            lab_usb = Label(win, width=20, text="drone connect usb COM: ", anchor='w',fg='white',bg='#282828')
             usb_com = Entry(win, width=7, textvariable=v)
             lab_usb.grid(row=row,columnspan=2, column=0,padx=10, sticky=W)
             usb_com.grid(row=row, column=2, padx=10, pady=5, sticky=E)
-            button_save = Button(win, text='Save', command=lambda: self.save_setting(win,entries,usb_com))
+            button_save = Button(win, text='Save',bg='#5CB300' ,fg='white',command=lambda: self.save_setting(win,entries,usb_com))
             button_save.grid(row = row+1,column = 1)
 
     def user_setting(self):
-        win = Toplevel()
-
+        win = Toplevel(bg='#282828')
+        win.resizable(width=False, height=False)
         var_email = StringVar()
         var_passw = StringVar()
 
-        l_email = Label(win, width=10, text="Email: ", anchor='w')
+        l_email = Label(win, width=10, text="Email: ", anchor='w',fg='white',bg='#282828')
         v_email = Entry(win, width=25,textvariable = var_email)
         l_email.grid(row=0, columnspan=1, column=0, padx=10, sticky=W + E)
         v_email.grid(row=0, column=1,columnspan=2, padx=10, pady=5, sticky=E)
 
-        l_pass = Label(win, width=10, text="Password: ", anchor='w')
+        l_pass = Label(win, width=10, text="Password: ", anchor='w',fg='white',bg='#282828')
         v_pass = Entry(win, width=25, textvariable = var_passw)
         l_pass.grid(row=1, columnspan=1, column=0, padx=10, sticky=W + E)
         v_pass.grid(row=1, column=1,columnspan=2, padx=10, pady=5, sticky=E)
 
-        button_save = Button(win, text='Save',bg='#5CB300', command=lambda: self.save_user( v_email, v_pass))
-        button_save.grid(row=3, column=0, sticky=E )
-        button_del = Button(win, text='Delete',bg='#C70002', command=lambda: self.del_user( v_email, v_pass))
-        button_del.grid(row=3, column=1, sticky=W )
+        button_save = Button(win, text='Save',bg='#5CB300', fg='white',command=lambda: self.save_user( v_email, v_pass))
+        button_save.grid(row=3,padx=2, column=1, sticky=E )
+        button_del = Button(win, text='Delete',bg='#C70002',fg='white', command=lambda: self.del_user( v_email, v_pass))
+        button_del.grid(row=3,padx=2, column=2, sticky=W )
 
     def save_user(self,email,passw):
         email_Verifi = re.match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})$', email.get())

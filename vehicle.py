@@ -35,7 +35,6 @@ class DroneControl:
         self.mavlink_time_out = False  # 120s to chance connect mavproxy
         #connect to mavproxy to master usb and split to two udp port
         mav_proxy = 'mavproxy.py --master="'+self.setting.get_usb_com()+'" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
-        #mav_proxy = 'mavproxy.py --master="COM4" --out=udp:127.0.0.1:14550 --out=udp:127.0.0.1:14551'
 
         self.mavlink_proc = subprocess.Popen(mav_proxy, shell=True, stdin=PIPE, stdout=subprocess.PIPE)
 
@@ -79,7 +78,6 @@ class DroneControl:
                 self.mavlink_time_out = True
                 break
             time.sleep(1)
-        print(sec)
 
     #disconnect from vehicle and close process
     def drone_disconnect(self):
@@ -103,7 +101,6 @@ class DroneControl:
         self.vehicle.flush()
 
     def manual_mode(self):
-        #self.vehicle.mode = VehicleMode("LOITER")
         self.vehicle.mode = VehicleMode("GUIDED")
         self.gui.show_msg_monitor(">> GUIDED mode activated", "msg")
         self.vehicle.flush()
@@ -155,18 +152,14 @@ class DroneControl:
         # send command to vehicle
         self.vehicle.send_mavlink(msg)
         self.vehicle.flush()
-
+    """
     def send_gps_and_rtl(self):
-        """need to write function that send gps to server!!!!!!"""
-        #self.gui.get_image = True  # get picture of person detected
-        #info =["person location:","lon:",self.__home_loc.lon,"lat:",self.__home_loc.lat]
-        #self.report.set_csv_on_report(info)
+        need to write function that send gps to server!!!!!!
         self.rtl_mode()
-
+    """
 
     def send_gps_and_stay(self):
         """need to write function that send gps to server!!!!!!"""
-        #self.gui.get_image = True  # get picture of person detected
         self.manual_mode()
         self.vehicle.flush()
 
@@ -243,7 +236,7 @@ class DroneControl:
                         self.vehicle.flush()
                         while not self.vehicle.mode.name == 'AUTO':
                             time.sleep(1)
-                        #self.vehicle.flush()
+
                         self.read_waypoint_live()
 
                         self.gui.show_msg_monitor(">> Start landing...", "msg")
@@ -275,7 +268,6 @@ class DroneControl:
             self.__insert_end_mission = True
             missionlist = []
             for cmd in self.command_mission:
-                print(cmd)
                 cmd.frame = mavutil.mavlink.MAV_FRAME_GLOBAL_RELATIVE_ALT
                 cmd.autocontinue = 0
                 cmd.z = self.setting.get_altitude() #change the altitude according to the setting that user insert
@@ -301,8 +293,7 @@ class DroneControl:
                 self.command_mission.add(cmd)
             self.command_mission.upload()
             self.vehicle.flush()
-        for cmd in self.command_mission:
-            print(cmd)
+
     #the function read the waypoint and print the waypoint that the drone move it.call from auto_mode function
 
     def read_waypoint_live(self):
@@ -332,7 +323,6 @@ class DroneControl:
     def arm_and_takeoff(self, target_altitude):
         #self.gui.show_msg_monitor(">> Drone takeoff to " + target_altitude + "meter altitude...", "msg")
         if self.vehicle.armed is False:
-            self.report.create_folder()
             self.gui.show_msg_monitor(">> Pre-arm checks", "msg")
             # Don't try to arm until autopilot is ready
             while not self.vehicle.is_armable:
@@ -349,9 +339,6 @@ class DroneControl:
             while not self.vehicle.armed:
                 time.sleep(1)
             self.gui.show_msg_monitor(">> ARMING MOTORS", "success")
-            #self.is_armed = True
-            #msg = ">> take off to " + target_altitude + " meter ..."
-            #self.gui.show_msg_monitor(str(msg), "msg")
             self.vehicle.simple_takeoff(target_altitude)  # Take off to target altitude
 
             # Wait until the vehicle reaches a safe height before processing the AUTO mode
@@ -406,15 +393,13 @@ class DroneControl:
         self.__home_loc = self.vehicle.location.global_relative_frame
         self.vehicle.mode = VehicleMode("GUIDED")
         self.drone_connected = True
+        self.report.create_folder()
         self.report.set_home_location(self.__home_loc)
-
-
         self.gui.show_msg_monitor(">> Drone is connected", "success")
 
 
     def connecting_sitl(self):
         self.cam_connect = True
-        #drone_kit_sitl = 'dronekit-sitl copter --home=31.7965240478516,35.3291511535645,248.839996337891,240'
         drone_kit_sitl = 'dronekit-sitl copter --home='+str(self.setting.get_sitl_lat())+','+str(self.setting.get_sitl_lon())+',248.839996337891,240'
         self.dronekit_process = subprocess.Popen(drone_kit_sitl, shell=True, stdin=PIPE)
         time.sleep(2)
@@ -431,7 +416,6 @@ class DroneControl:
             self.vehicle = None
         self.cam_connect = False
         self.drone_connected = False
-        #os.kill(os.getpid(), signal.SIGTERM)
 
         search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
 
@@ -444,7 +428,6 @@ class DroneControl:
             pid_mavproxy_sitl_proc = self.mavProxy_sitl_proc.pid
             subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
 
-        #os.kill(self.dronekit_process.pid, signal.SIGTERM)
         os.kill(search_pid_port.pid, signal.SIGTERM)
 
     #when person detection the function switch from auto mode to manual mode and:
@@ -460,9 +443,6 @@ class DroneControl:
                 self.manual_mode()
                 self.person_is_detect = True
                 self.gui.show_msg_user("person detection")
-                print("hiiii person")
-                print(self.vehicle.location.global_relative_frame)
-                print("hiiii person")
                 self.__person_location = self.vehicle.location.global_relative_frame
                 self.report.set_time_detection(time.strftime("%H:%M:%S"))
                 self.gui.get_image_function()
@@ -470,11 +450,10 @@ class DroneControl:
                     time.sleep(1)
                 self.__person_location = self.vehicle.location.global_relative_frame
 
-    #need to create distance detection in setting class!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
     #the function resets the detection option after a specified distance,to alarm again.call from user_reply_message function in GUI class
     def check_alarm_operation(self):
-
-        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < 15 :
+        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < int(self.setting.get_distance_detection()) :
             time.sleep(1)
         self.person_is_detect = False
 
