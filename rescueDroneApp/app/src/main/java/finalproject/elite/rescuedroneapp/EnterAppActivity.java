@@ -1,12 +1,14 @@
 package finalproject.elite.rescuedroneapp;
 
 import android.content.Intent;
+import android.nfc.Tag;
 import android.os.Bundle;
 import android.os.PersistableBundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -19,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 
 public class EnterAppActivity extends AppCompatActivity {
 
+    private static final String TAG = "EnterAppActivity";
     private EditText mEmailField;
     private EditText mPasswordField;
 
@@ -66,6 +69,16 @@ public class EnterAppActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+    }
+
     private void startSignIn() {
         String email = mEmailField.getText().toString();
         String password = mPasswordField.getText().toString();
@@ -74,7 +87,8 @@ public class EnterAppActivity extends AppCompatActivity {
             Toast.makeText(EnterAppActivity.this, "Fields are empty", Toast.LENGTH_LONG).show();
         } else {
 
-            // TODO: 06/06/2018 check if the user exists and if so then  do stupid line
+            // TODO: maby cange option of screen
+
 
             mAuth.signInWithEmailAndPassword(email, password).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
                 @Override
@@ -83,6 +97,7 @@ public class EnterAppActivity extends AppCompatActivity {
                     if (!task.isSuccessful()) {
                         Toast.makeText(EnterAppActivity.this, "Sign did not succeed", Toast.LENGTH_LONG).show();
                     } else {
+                        Log.d(TAG, "fjkfhkdjhfkjdhfkjhdfkjsdhkf");
                         startActivity(new Intent(EnterAppActivity.this, MapsActivity.class));
 
                     }

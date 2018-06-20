@@ -1,11 +1,15 @@
 package finalproject.elite.rescuedroneapp;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -37,7 +41,9 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback,
         GoogleApiClient.ConnectionCallbacks,
@@ -51,17 +57,21 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest mLocationRequest;
     private Location mLastLocation;
-    //private Location destLocation;
     private LatLng destLatLng;
     private ArrayList<LatLng> destPoints  = new ArrayList<>();;
     private Marker markerToAdd;
     private ArrayList<Marker> destMarkers = new ArrayList<>();;
     private ArrayList<Polyline> allPolyLines = new ArrayList<>();
+    private Set<String> strLatLng = new HashSet<String>();
     private FirebaseDatabase mFirebaseDatabase;
     private DatabaseReference mDatabaseReference;
     private LatLng currLatLng;
+    private SharedPreferences mSharedPreferences;
+    private SharedPreferences.Editor mPreferencesEditor;
+    private int key = 0; //represent a key to tell if there was a return to the app
 
     public static final int MY_PERMISSIONS_REQUEST_LOCATION = 99;
+    private static final int PREFERENCE_MODE_PRIVATE = 0;
 
 
     @Override
@@ -72,11 +82,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             checkLocationPermission();
         }
-        // Initializing
-        //destMarkers = new ArrayList<>();
-        //allPolylines = new ArrayList<>();
-        //destPoints = new ArrayList<>();
-        //destLocation = new Location("");
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -85,11 +90,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         mDatabaseReference = mFirebaseDatabase.getReference();
+        mDatabaseReference.child("locations");
 
-
-        //database reference pointing to demo node
-        DatabaseReference demoRef = mDatabaseReference.child("locations");
-        demoRef.child("location0").getDatabase();
+        mSharedPreferences = getPreferences(PREFERENCE_MODE_PRIVATE);
+        mPreferencesEditor = mSharedPreferences.edit();
     }
 
 
@@ -123,154 +127,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         // Read from the database
-
-    }
-
-
-
-    private void getChild(DataSnapshot dataSnapshot) {
-        mMap.clear();
-        Log.d(TAG, String.valueOf(dataSnapshot));
-            for (DataSnapshot ds : dataSnapshot.getChildren()) {
-                Map<String, String> map = (Map<String, String>) ds.getValue();
-                Log.d(TAG, String.valueOf(map));
-                String sLatitude = String.valueOf(map.get("latitude"));
-                String sLongitude = String.valueOf(map.get("longitude"));
-                double dLatitude = Double.valueOf(sLatitude);
-                double dLongitude = Double.valueOf(sLongitude);
-                destLatLng = new LatLng(dLatitude, dLongitude);
-
-                LatLng origin = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
-
-                destPoints.add(destLatLng);
-                Log.d(TAG, " dest points in child: " + destPoints);
-                Log.d(TAG, "in get child!!!!!!!!!!!!!!!!!!");
-                for (LatLng point : destPoints) {
-                    addPointMarker(point);
-                    drawLine(origin, point);
-                    mMap.moveCamera(CameraUpdateFactory.newLatLng(origin));
-
-                }
-            }
-    }
-
-    @Override
-    public void onClick(View view) {
-
-    }
-
-    protected synchronized void buildGoogleApiClient() {
-        //used for configure client:
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .addConnectionCallbacks(this) //when client connected or disconnected.
-                .addOnConnectionFailedListener(this) //covers scenarios of failed attempt of connect client to service.
-                .addApi(LocationServices.API) //adds the LocationServices API endpoint from Google Play Services.
-                .build();
-        mGoogleApiClient.connect(); //A client must be connected before executing any operation.
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-
-        Log.d(TAG, "in location changed!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-        Log.d(TAG, "destpoints in location changed: " + destPoints);
-        Log.d(TAG, "destMarker in location changed: " + destMarkers);
-        Log.d(TAG, "poly lines in location changed: " + allPolyLines);
-        mLastLocation = location;
-
-        //place current location marker:
-        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude()); //getting coordinates of current location.
-
-        //Move map camera:
-        //mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, 16f));
-
-
-        currLatLng = latLng;
-
-        for (Polyline polyline: allPolyLines) {
-            polyline.remove();
-        }
-        redrawLine();
-        changeDistanceOnMarker();
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        //Stop location updates:
-        if (mGoogleApiClient != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
-
-        }
-    }
-
-    private void redrawLine() {
-        Log.d(TAG, "in re draw!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-
-        for (int i = 0; i < destPoints.size(); i++) {
-            Log.d(TAG, "in for in re draw!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-            LatLng point = destPoints.get(i);
-            drawLine(currLatLng, point);
-        }
-    }
-
-    private void drawLine(LatLng origin, LatLng destination) {
-        Log.d(TAG,"add line!!!!!!!!!!!!!!!!!!!!!!!");
-        Polyline polyline = mMap.addPolyline(new PolylineOptions()
-                .clickable(true).add(origin, destination).color(getResources().
-                        getColor(R.color.colorBlue)).width(10));
-        allPolyLines.add(polyline);
-    }
-
-    private void changeDistanceOnMarker() {
-        Log.d(TAG,"change distance!!!!!!!!!!!!!!!!!!!!!!!");
-
-        for (Marker marker: destMarkers) {
-            LatLng latLng =  marker.getPosition();
-
-            marker.setTitle(String.valueOf(calculateDistance(latLng) + "m"));
-            if(marker.isInfoWindowShown()) {
-                marker.showInfoWindow();
-            }
-
-        }
-    }
-
-    private void addPointMarker(LatLng point) {
-        Log.d(TAG,"add Marker!!!!!!!!!!!!!!!!!!!!!!!");
-
-        markerToAdd = mMap.addMarker(new MarkerOptions().position(point)
-                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
-                .title(String.valueOf(calculateDistance(point))+ "m"));
-        destMarkers.add(markerToAdd);
-    }
-
-    private double calculateDistance(LatLng latLng) {
-        Location destLocation = new Location("");
-        destLocation.setLatitude(latLng.latitude);
-        destLocation.setLongitude(latLng.longitude);
-        return (int)mLastLocation.distanceTo(destLocation);
-    }
-
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        Log.d(TAG, "connecteddddddddddddddddddd");
-        Log.d(TAG, "dddd" + destPoints.toString());
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(1000);
-        mLocationRequest.setFastestInterval(1000);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            LocationServices.FusedLocationApi.requestLocationUpdates
-                    (mGoogleApiClient, mLocationRequest, this);
-
-        }
-
-        //destPoints.clear();
-
-        // Read from the database
         mDatabaseReference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -292,6 +148,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             public void onChildRemoved(DataSnapshot dataSnapshot) {
                 // when there is no locations at all (rescue-drone data have no childes):
                 destPoints.clear();
+                mPreferencesEditor.clear();
                 mMap.clear();
 
             }
@@ -308,8 +165,159 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         });
+    }
+
+    private void getChild(DataSnapshot dataSnapshot) {
+        mMap.clear();
+        destPoints.clear();
+        Log.d(TAG, String.valueOf(dataSnapshot));
+            for (DataSnapshot ds : dataSnapshot.getChildren()) {
+                Map<String, String> map = (Map<String, String>) ds.getValue();
+                Log.d(TAG, String.valueOf(map));
+                String sLatitude = String.valueOf(map.get("latitude"));
+                String sLongitude = String.valueOf(map.get("longitude"));
+                double dLatitude = Double.valueOf(sLatitude);
+                double dLongitude = Double.valueOf(sLongitude);
+                destLatLng = new LatLng(dLatitude, dLongitude);
+
+                LatLng origin = new LatLng(mLastLocation.getLatitude(), mLastLocation.getLongitude());
 
 
+                destPoints.add(destLatLng);
+                Log.d(TAG, " dest points in child: " + destPoints);
+                Log.d(TAG, "in get child!!!!!!!!!!!!!!!!!!");
+                int count = 0;
+                for (LatLng point : destPoints) {
+                    addPointMarker(point);
+                    drawLine(origin, point);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLng(origin));
+
+                    strLatLng.add(String.valueOf(point.latitude) + "," + String.valueOf(point.longitude));
+                    count++;
+                }
+
+                //saving current destination points to shared preference:
+                mPreferencesEditor.clear();
+                mPreferencesEditor.commit();
+
+                mPreferencesEditor.putStringSet("strLatLng", strLatLng);
+                mPreferencesEditor.commit();
+            }
+    }
+
+    @Override
+    public void onClick(View view) {
+
+    }
+
+    protected synchronized void buildGoogleApiClient() {
+        //used for configure client:
+        mGoogleApiClient = new GoogleApiClient.Builder(this)
+                .addConnectionCallbacks(this) //when client connected or disconnected.
+                .addOnConnectionFailedListener(this) //covers scenarios of failed attempt of connect client to service.
+                .addApi(LocationServices.API) //adds the LocationServices API endpoint from Google Play Services.
+                .build();
+        mGoogleApiClient.connect(); //A client must be connected before executing any operation.
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        mLastLocation = location;
+
+        //place current location marker:
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude()); //getting coordinates of current location.
+
+        currLatLng = latLng;
+
+        //if the app return from pause, add the marker and draw the line from zero:
+        if (key == 1) {
+            for (LatLng point: destPoints) {
+                addPointMarker(point);
+                drawLine(currLatLng, point);
+
+            }
+            key = 0;
+        }
+        //else, if the app doesn't return from pause, needs only to redraw the line based on current location changes:
+        else {
+            for (Polyline polyline: allPolyLines) {
+                polyline.remove();
+            }
+            redrawLine();
+            changeDistanceOnMarker();
+
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        //Stop location updates:
+        if (mGoogleApiClient != null) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);
+
+        }
+    }
+
+
+    private void redrawLine() {
+        for (int i = 0; i < destPoints.size(); i++) {
+            LatLng point = destPoints.get(i);
+            drawLine(currLatLng, point);
+        }
+    }
+
+    private void drawLine(LatLng origin, LatLng destination) {
+        Polyline polyline = mMap.addPolyline(new PolylineOptions()
+                .clickable(true).add(origin, destination).color(getResources().
+                        getColor(R.color.colorBlue)).width(10));
+        allPolyLines.add(polyline);
+    }
+
+    private void changeDistanceOnMarker() {
+        for (Marker marker: destMarkers) {
+            LatLng latLng =  marker.getPosition();
+
+            marker.setTitle(String.valueOf(calculateDistance(latLng) + "m"));
+            if(marker.isInfoWindowShown()) {
+                marker.showInfoWindow();
+            }
+
+        }
+    }
+
+    private void addPointMarker(LatLng point) {
+        if (mLastLocation != null) {
+            markerToAdd = mMap.addMarker(new MarkerOptions().position(point)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED))
+                    .title(String.valueOf(calculateDistance(point))+ "m"));
+            destMarkers.add(markerToAdd);
+
+        }
+    }
+
+    private double calculateDistance(LatLng latLng) {
+        Location destLocation = new Location("");
+        destLocation.setLatitude(latLng.latitude);
+        destLocation.setLongitude(latLng.longitude);
+        return (int)mLastLocation.distanceTo(destLocation);
+    }
+
+
+    @Override
+    public void onConnected(@Nullable Bundle bundle) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(1000);
+        mLocationRequest.setFastestInterval(1000);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            LocationServices.FusedLocationApi.requestLocationUpdates
+                    (mGoogleApiClient, mLocationRequest, this);
+
+        }
+
+        // Read from the database
     }
 
     @Override
@@ -319,7 +327,19 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         if (mGoogleApiClient != null) {
             mGoogleApiClient.connect();
         }
-        Log.d(TAG, "resumeeeeeeeeeeeeeeeeeee");
+
+        Set<String> allLatLng = mSharedPreferences.getStringSet("strLatLng", null);
+        if (allLatLng != null) {
+            for (String latLng: allLatLng) {
+                String[] separatedLatLng  = latLng.split(",");
+                double dLatitude = Double.valueOf(separatedLatLng[0]);
+                double dLongitude = Double.valueOf(separatedLatLng[1]);
+                destLatLng = new LatLng(dLatitude, dLongitude);
+                destPoints.add(destLatLng);
+                key = 1; // resume to app key
+
+            }
+        }
     }
 
     @Override
@@ -372,6 +392,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return true;
         }
     }
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode,
