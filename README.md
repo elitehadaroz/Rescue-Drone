@@ -29,7 +29,13 @@
 
 Human identification is done by image processing, by the SSD algorithm which we researched and studied during the project.
 today there is no such system and therefore we found it necessary to develop and study and build our system.
-The goal of the project is to minimize the disadvantages that exist today in a search for human lost or in distress, this disadvantages and the solutions for them will be presented in this report.
+The goal of the project is to minimize the disadvantages that exist today in a search for human lost or in distress.
+
+this disadvantages includes: many expenses, use of a large number of teams to search, a waste of critical time and more.
+Our system is essentially a semi-automatic system, which enables you to operate a whole fleet of drones with minimal manpower, minimize the initial response time to find a person in distress, and save on the expenses of all the resources mentioned above.
+
+
+
 
 
 
