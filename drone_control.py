@@ -606,7 +606,6 @@ class Gui:
                 rtl = threading.Thread(name='drone connect', target=self.drone_vehicle.rtl_mode)
                 rtl.start()
             else:
-                print("continue searce")
                 low_batt_timer = threading.Thread(name="check_low_battery",target=self.timer_low_battery)
                 low_batt_timer.start()
 
@@ -622,7 +621,6 @@ class Gui:
         self.low_battery = False
 
     def person_location_todb(self,location):
-        print(location)
         self.setting.get_db().patch('location' + str(self.__count_person), {'longitude': location.lon, 'latitude': location.lat})
         self.__count_person +=1
 
@@ -721,7 +719,6 @@ class Gui:
                         self.drone_vehicle.set_velocity_body(0, 0, gnd_speed,0)
                         self.move_dwon.after(100, lambda: self.move_dwon.config(relief=RAISED))
                     elif event.keysym == 'w' :   #up
-                        print("hiiii")
                         self.move_up.config(relief=SUNKEN)
                         self.drone_vehicle.set_velocity_body(0, 0, -gnd_speed,0)
                         self.move_up.after(100, lambda: self.move_up.config(relief=RAISED))

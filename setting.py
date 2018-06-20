@@ -49,7 +49,7 @@ class Setting:
     def get_sitl_lat(self):
         return self.__setting['set lat for sitl']
     def get_distance_detection(self):
-        return self.__setting['distance detection']
+        return self.__setting['distance detection(m)']
     def get_altitude(self):
             return self.__setting['set altitude(meter)']
     def get_auto_speed(self):

@@ -416,7 +416,7 @@ class DroneControl:
             self.vehicle = None
         self.cam_connect = False
         self.drone_connected = False
-
+        self.gui.show_msg_monitor(">> Sitl disconnecting...", "msg")
         search_pid_port = subprocess.Popen('netstat -ano | findstr :5760', shell=True, stdin=PIPE,stdout=subprocess.PIPE)
 
         port_pid_task = search_pid_port.stdout.readline().split(" ")  # the line that pid of port 5760 is open
@@ -429,7 +429,7 @@ class DroneControl:
             subprocess.Popen('taskkill /F /T /PID %i' % pid_mavproxy_sitl_proc, shell=True)
 
         os.kill(search_pid_port.pid, signal.SIGTERM)
-
+        self.gui.show_msg_monitor(">> Sitl disconnect", "success")
     #when person detection the function switch from auto mode to manual mode and:
     # 1)show msg in monitor that person detection
     # 2)show msg with selection mode "how to continue?"
@@ -453,10 +453,9 @@ class DroneControl:
 
     #the function resets the detection option after a specified distance,to alarm again.call from user_reply_message function in GUI class
     def check_alarm_operation(self):
-        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < int(self.setting.get_distance_detection()) :
+        while self.get_distance_metres(self.__person_location ,self.vehicle.location.global_relative_frame) < int(self.setting.get_distance_detection()) and self.vehicle.armed:
             time.sleep(1)
         self.person_is_detect = False
-
 
 
     #the function read information from drone,call from get_parm_drone function in GUI class
