@@ -34,6 +34,10 @@ The goal of the project is to minimize the disadvantages that exist today in a s
 this disadvantages includes: many expenses, use of a large number of teams to search, a waste of critical time and more.
 Our system is essentially a semi-automatic system, which enables you to operate a whole fleet of drones with minimal manpower, minimize the initial response time to find a person in distress, and save on the expenses of all the resources mentioned above.
 
+Our system identifies a person, alerts, and the operator decides how to proceed with the information received.
+
+<img src="https://ibb.co/k4U40J">
+
 
 
 
