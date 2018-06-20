@@ -10,8 +10,10 @@
 |---|---|
 | Version Control System| git & github |
 | Recommended IDE | [Python 2.7 & 3.6](https://www.python.org/)|
+| Application to rescue teams IDE | [Android](https://developer.android.com/)|
 | Project Management Board| [here](https://github.com/elitehadaroz/Rescue-Drone/projects/1) |
 | Issues | [![GitHub issues](https://img.shields.io/github/issues/jce-il/project-template.svg?style=flat)](https://github.com/elitehadaroz/Rescue-Drone/issues) |
+
 
 
 
@@ -28,4 +30,6 @@
 Human identification is done by image processing, by the SSD algorithm which we researched and studied during the project.
 today there is no such system and therefore we found it necessary to develop and study and build our system.
 The goal of the project is to minimize the disadvantages that exist today in a search for human lost or in distress, this disadvantages and the solutions for them will be presented in this report.
+
+
 
