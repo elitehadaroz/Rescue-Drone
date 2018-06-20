@@ -36,7 +36,7 @@ Our system is essentially a semi-automatic system, which enables you to operate 
 
 Our system identifies a person, alerts, and the operator decides how to proceed with the information received.
 
-<img src="https://ibb.co/k4U40J">
+<img src="http://www.up2me.co.il/images/38589691.png">
 
 
 
