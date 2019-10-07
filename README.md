@@ -1,4 +1,3 @@
-<img src="http://www.up2me.co.il/images/83577883.png">
 <img src="project logo.png">
 
 ## Final project at Azrieli College of Engineering
@@ -38,7 +37,7 @@ Our system is essentially a semi-automatic system, which enables you to operate 
 
 Our system identifies a person, alerts, and the operator decides how to proceed with the information received.
 
-<img src="http://www.up2me.co.il/images/38589691.png">
+<img src="system view.png">
 
 
 
