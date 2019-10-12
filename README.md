@@ -39,6 +39,8 @@ Our system identifies a person, alerts, and the operator decides how to proceed 
 
 <img src="system view.png">
 
+## [short video showing our system](https://teamup.com/ksempczizaobs7881e)
+
 
 
 
